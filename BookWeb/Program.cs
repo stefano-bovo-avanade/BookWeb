@@ -1,4 +1,4 @@
-using BookWeb.Repository.Repository;
+ using BookWeb.Repository.Repository;
 using BookWeb.Service.Context;
 
 namespace BookWeb
@@ -32,9 +32,13 @@ namespace BookWeb
 
             app.UseAuthorization();
 
+            //app.MapControllerRoute(
+            //    name: "default",
+            //        pattern: "{controller=Home}/{action=Index}/{id?}");
+
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 
             app.Run();
         }

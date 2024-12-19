@@ -39,7 +39,6 @@ namespace BookWeb.Repository.Repository
         {
             using (var connection = _context.CreateConnection())
             {
-                
                 var sql = $"INSERT INTO {Category.F_CATEGORY} ({Category.F_NOME}, {Category.F_DISPLAYORDER}) VALUES " +
                     $"(@{Category.F_NOME}, @{Category.F_DISPLAYORDER}); SELECT CAST(SCOPE_IDENTITY() as int)";
                 var result = await connection.QueryAsync<int>(sql,
@@ -52,10 +51,8 @@ namespace BookWeb.Repository.Repository
 
         public async Task<int> UpdateCategory(Category category)
         {
-
             using (var connection = _context.CreateConnection())
             {
-
                 var sql = $"UPDATE {Category.F_CATEGORY} SET {Category.F_NOME} = @{Category.F_NOME}, " +
                     $"{Category.F_DISPLAYORDER} = @{Category.F_DISPLAYORDER} WHERE {Category.F_ID} = @{Category.F_ID}; " +
                     "SELECT CAST(SCOPE_IDENTITY() as int)";

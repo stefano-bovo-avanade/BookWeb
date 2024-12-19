@@ -1,15 +1,17 @@
-﻿using BookWeb.Models.Models;
+﻿using BookWeb.Areas.Customer.Controllers;
+using BookWeb.Models.Models;
 using BookWeb.Repository.Repository;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BookWeb.Controllers
+namespace BookWeb.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class CategoryController : Controller
     {
         private readonly ILogger _logger;
         private readonly ICategoryRepository _categoryRepository;
 
-        public CategoryController(ILogger<HomeController> logger, ICategoryRepository categoryRepository) 
+        public CategoryController(ILogger<HomeController> logger, ICategoryRepository categoryRepository)
         {
             _logger = logger;
             _categoryRepository = categoryRepository;
