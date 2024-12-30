@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using System.Text;
 
-namespace BookWeb.Repository.Repository
+namespace BookWeb.Repository.Repository.GenericRepository
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
@@ -26,7 +26,7 @@ namespace BookWeb.Repository.Repository
                     string keyColumn = GetKeyColumnName();
                     string query = $"SELECT {GetColumnsAsProperties()} FROM {tableName} WHERE {keyColumn} = '{Id}'";
 
-                    result = await connection.QuerySingleAsync<T>(query, new { @Id = Id });
+                    result = await connection.QuerySingleAsync<T>(query, new { Id });
                 }
                 catch (Exception ex)
                 {
@@ -125,7 +125,7 @@ namespace BookWeb.Repository.Repository
             int rowsEffected = 0;
             using (var connection = _context.CreateConnection())
             {
-                
+
                 try
                 {
                     string? tableName = GetTableName();
@@ -139,7 +139,7 @@ namespace BookWeb.Repository.Repository
                 {
                     Console.WriteLine($"Error deleting a record in db: ${ex.Message}");
                     rowsEffected = -1;
-                } 
+                }
             }
             return rowsEffected;
         }

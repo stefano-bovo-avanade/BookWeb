@@ -13,6 +13,8 @@ namespace BookWeb
             builder.Services.AddControllersWithViews();
             builder.Services.AddSingleton<DapperContext>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
             //builder.Services.AddControllersWithViews();
 
             var app = builder.Build();

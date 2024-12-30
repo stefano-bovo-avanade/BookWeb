@@ -57,7 +57,7 @@ namespace BookWeb.Repository.Repository
                     $"{Category.F_DISPLAYORDER} = @{Category.F_DISPLAYORDER} WHERE {Category.F_ID} = @{Category.F_ID}; " +
                     "SELECT CAST(SCOPE_IDENTITY() as int)";
                 var result = await connection.QueryAsync<int>(sql,
-                    new { Name = category.Name, DisplayOrder = category.DisplayOrder, categoryId = category.Id });
+                    new { Name = category.Name, DisplayOrder = category.DisplayOrder, Id = category.Id });
 
                 return result.FirstOrDefault();
 

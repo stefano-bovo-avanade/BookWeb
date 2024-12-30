@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace BookWeb.Repository.Repository
+namespace BookWeb.Repository.Repository.GenericRepository
 {
     public interface IGenericRepository<T> where T : class
     {
