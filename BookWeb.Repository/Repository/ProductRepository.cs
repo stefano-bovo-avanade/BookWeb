@@ -16,6 +16,7 @@ namespace BookWeb.Repository.Repository
         public async Task<Product> GetProduct(int? Id)
         {
             var query = $"SELECT " +
+                $"{Product.F_ID}, " +
                 $"{Product.F_TITLE}, " +
                 $"{Product.F_DESCRIPTION}, " +
                 $"{Product.F_ISBN}," +
@@ -56,7 +57,8 @@ namespace BookWeb.Repository.Repository
                     $"{Product.F_LISTPRICE}, " +
                     $"{Product.F_PRICE}, " +
                     $"{Product.F_PRICE50}, " +
-                    $"{Product.F_PRICE100}) VALUES " +
+                    $"{Product.F_PRICE100}, " +
+                    $"{Product.F_CATEGORYID}) VALUES " +
                     $"(@{Product.F_TITLE}, " +
                     $"@{Product.F_DESCRIPTION}, " +
                     $"@{Product.F_ISBN}, " +
@@ -64,7 +66,8 @@ namespace BookWeb.Repository.Repository
                     $"@{Product.F_LISTPRICE}, " +
                     $"@{Product.F_PRICE}, " +
                     $"@{Product.F_PRICE50}, " +
-                    $"@{Product.F_PRICE100}); " +
+                    $"@{Product.F_PRICE100}, " +
+                    $"@{Product.F_CATEGORYID}); " +
                     $"SELECT CAST(SCOPE_IDENTITY() as int)";
                 var result = await connection.QueryAsync<int>(sql, new 
                 { 
@@ -75,7 +78,8 @@ namespace BookWeb.Repository.Repository
                     ListPrice = product.ListPrice,
                     Price = product.Price,
                     Price50 = product.Price50,
-                    Price100 = product.Price100
+                    Price100 = product.Price100,
+                    CategoryId = product.CategoryId
                 });
 
                 return result.FirstOrDefault();
@@ -118,16 +122,14 @@ namespace BookWeb.Repository.Repository
 
         public async Task<int> DeleteProduct(int? id)
         {
-            var p = new DynamicParameters();
-            p.Add("id", id);
-            p.Add("returnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
-
+            string sql = $"DELETE from {Product.F_PRODUCTS} where {Product.F_ID} = @{Product.F_ID}";
+            
             using (var connection = _context.CreateConnection())
             {
-                var result = await connection.ExecuteAsync("[dbo].[DeleteCategory]", p, commandType: CommandType.StoredProcedure);
-                var returnValue = p.Get<int>("returnValue");
-                return returnValue;
+                var result = await connection.ExecuteAsync(sql, new { id = id});
+                return result;
             }
+            
         }
     }
 }

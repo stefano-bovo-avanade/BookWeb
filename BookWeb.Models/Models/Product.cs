@@ -14,6 +14,8 @@ namespace BookWeb.Models.Models
         public const string F_PRICE = "Price";
         public const string F_PRICE50 = "Price50";
         public const string F_PRICE100 = "Price100";
+        public const string F_CATEGORYID = "CategoryId";
+        public const string F_IMAGEURL = "ImageUrl";
 
 
         [Key]
@@ -47,6 +49,12 @@ namespace BookWeb.Models.Models
         [Range(1, 1000)]
         [Display(Name = "Price for 100+")]
         public double Price100 { get; set; }
+
+        [Required]
+        public int CategoryId { get; set; }
+
+        [Required]
+        public string ImageUrl { get; set; }
 
     }
 }
