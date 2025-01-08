@@ -13,13 +13,15 @@ namespace BookWeb.Areas.Admin.Controllers
         private readonly ILogger _logger;
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(ILogger<HomeController> logger, 
-            IProductRepository productRepository, ICategoryRepository categoryRepository)
+        public ProductController(ILogger<HomeController> logger,
+            IProductRepository productRepository, ICategoryRepository categoryRepository, IWebHostEnvironment webHostEnvironment)
         {
             _logger = logger;
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [HttpGet]
@@ -66,15 +68,50 @@ namespace BookWeb.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult Upsert(ProductVM productVM, IFormFile? file)
+        public IActionResult Upsert(ProductVM productVM, IFormFile? image)
         {
             if (ModelState.IsValid)
             {
-                var productId = _productRepository.InsertProduct(productVM.Product);
-                TempData["success"] = "Product created successfully";
+                string wwwRootPath = _webHostEnvironment.WebRootPath;
+                if (image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+                    string productPath = Path.Combine(wwwRootPath, @"images\product\");
+
+                    if (!string.IsNullOrEmpty(productVM.Product.ImageUrl))
+                    {
+                        //delete the old image
+                        var oldImagePath = Path.Combine(wwwRootPath, productVM.Product.ImageUrl.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                        
+                    }
+
+                    using (var fileStream = new FileStream(Path.Combine(productPath + fileName), FileMode.Create))
+                    {
+                        image.CopyTo(fileStream);
+                    }
+                    
+                    productVM.Product.ImageUrl = @"\images\product\" + fileName;     
+                }
+
+                if (productVM.Product.Id == 0)
+                {
+                    var productId = _productRepository.InsertProduct(productVM.Product);
+                    TempData["success"] = "Product created successfully";
+                }
+                else
+                {
+                    _productRepository.UpdateProduct(productVM.Product);
+                    TempData["success"] = "Product updated successfully";
+                }
+                
                 return RedirectToAction("Index");
+
             }
-            else 
+            else
             {
                 productVM.CategoryList = _categoryRepository.GetCategories().Result.Select(u => new SelectListItem
                 {
@@ -141,6 +178,18 @@ namespace BookWeb.Areas.Admin.Controllers
             _productRepository.DeleteProduct(id);
             TempData["error"] = "Product deleted successfully";
             return RedirectToAction("Index");
+        }
+
+        private string? copyImage(IFormFile? image)
+        {
+            string? fileName = null;
+            
+            
+            {
+                
+                
+            }
+            return fileName;
         }
     }
 }
