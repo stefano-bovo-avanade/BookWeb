@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BulkyBook.Models;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 
 namespace BookWeb.Models.Models
 {
@@ -53,8 +55,6 @@ namespace BookWeb.Models.Models
         [Required]
         public int CategoryId { get; set; }
 
-        [Required]
-        public string ImageUrl { get; set; }
-
+        public string? ImageUrl { get; set; } = null;
     }
 }

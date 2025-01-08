@@ -19,17 +19,18 @@ namespace BookWeb.Repository.Repository
                 $"{Product.F_ID}, " +
                 $"{Product.F_TITLE}, " +
                 $"{Product.F_DESCRIPTION}, " +
-                $"{Product.F_ISBN}," +
-                $"{Product.F_AUTHOR}," +
-                $"{Product.F_LISTPRICE}," +
-                $"{Product.F_PRICE}," +
-                $"{Product.F_PRICE50}," +
-                $"{Product.F_PRICE100} " +
+                $"{Product.F_ISBN}, " +
+                $"{Product.F_AUTHOR}, " +
+                $"{Product.F_LISTPRICE}, " +
+                $"{Product.F_PRICE}, " +
+                $"{Product.F_PRICE50}, " +
+                $"{Product.F_PRICE100}, " +
+                $"{Product.F_IMAGEURL} " +
                 $"FROM {Product.F_PRODUCTS} where {Product.F_ID} = @{Product.F_ID}";
 
             using (var connection = _context.CreateConnection())
             {
-                var result = await connection.QuerySingleAsync<Product>(query, new { @Id = Id });
+                var result = await connection.QuerySingleAsync<Product>(query, new { Id = Id });
                 return result;
             }
         }
@@ -58,7 +59,8 @@ namespace BookWeb.Repository.Repository
                     $"{Product.F_PRICE}, " +
                     $"{Product.F_PRICE50}, " +
                     $"{Product.F_PRICE100}, " +
-                    $"{Product.F_CATEGORYID}) VALUES " +
+                    $"{Product.F_CATEGORYID}, " +
+                    $"{Product.F_IMAGEURL}) VALUES " +
                     $"(@{Product.F_TITLE}, " +
                     $"@{Product.F_DESCRIPTION}, " +
                     $"@{Product.F_ISBN}, " +
@@ -67,7 +69,8 @@ namespace BookWeb.Repository.Repository
                     $"@{Product.F_PRICE}, " +
                     $"@{Product.F_PRICE50}, " +
                     $"@{Product.F_PRICE100}, " +
-                    $"@{Product.F_CATEGORYID}); " +
+                    $"@{Product.F_CATEGORYID}, " +
+                    $"@{Product.F_IMAGEURL}); " +
                     $"SELECT CAST(SCOPE_IDENTITY() as int)";
                 var result = await connection.QueryAsync<int>(sql, new 
                 { 
@@ -79,7 +82,8 @@ namespace BookWeb.Repository.Repository
                     Price = product.Price,
                     Price50 = product.Price50,
                     Price100 = product.Price100,
-                    CategoryId = product.CategoryId
+                    CategoryId = product.CategoryId,
+                    ImageUrl = product.ImageUrl,
                 });
 
                 return result.FirstOrDefault();
@@ -95,11 +99,12 @@ namespace BookWeb.Repository.Repository
                     $"{Product.F_TITLE} = @{Product.F_TITLE}, " +
                     $"{Product.F_DESCRIPTION} = @{Product.F_DESCRIPTION}, " +
                     $"{Product.F_ISBN} = @{Product.F_ISBN}, " +
-                    $"{Product.F_AUTHOR} = @{Product.F_AUTHOR}," +
+                    $"{Product.F_AUTHOR} = @{Product.F_AUTHOR}, " +
                     $"{Product.F_LISTPRICE} = @{Product.F_LISTPRICE}, " +
                     $"{Product.F_PRICE} = @{Product.F_PRICE}, " +
                     $"{Product.F_PRICE50} = @{Product.F_PRICE50}, " +
-                    $"{Product.F_PRICE100} = @{Product.F_PRICE100} " +
+                    $"{Product.F_PRICE100} = @{Product.F_PRICE100}, " +
+                    $"{Product.F_IMAGEURL} = @{Product.F_IMAGEURL} " +
                     $"WHERE {Product.F_ID} = @{Product.F_ID}; " +
                     "SELECT CAST(SCOPE_IDENTITY() as int)";
                 var result = await connection.QueryAsync<int>(sql, new
@@ -112,7 +117,8 @@ namespace BookWeb.Repository.Repository
                     ListPrice = product.ListPrice,
                     Price = product.Price,
                     Price50 = product.Price50,
-                    Price100 = product.Price100
+                    Price100 = product.Price100,
+                    ImageUrl = product.ImageUrl,
                 });
 
                 return result.FirstOrDefault();
