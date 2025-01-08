@@ -113,6 +113,7 @@ namespace BookWeb.Areas.Admin.Controllers
             }
             else
             {
+                var product = productVM.Product;
                 productVM.CategoryList = _categoryRepository.GetCategories().Result.Select(u => new SelectListItem
                 {
                     Text = u.Name,

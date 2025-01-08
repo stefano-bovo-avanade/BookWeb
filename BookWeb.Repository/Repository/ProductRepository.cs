@@ -25,6 +25,7 @@ namespace BookWeb.Repository.Repository
                 $"{Product.F_PRICE}, " +
                 $"{Product.F_PRICE50}, " +
                 $"{Product.F_PRICE100}, " +
+                $"{Product.F_CATEGORYID}, " +
                 $"{Product.F_IMAGEURL} " +
                 $"FROM {Product.F_PRODUCTS} where {Product.F_ID} = @{Product.F_ID}";
 
@@ -97,13 +98,14 @@ namespace BookWeb.Repository.Repository
             {
                 var sql = $"UPDATE {Product.F_PRODUCTS} SET " +
                     $"{Product.F_TITLE} = @{Product.F_TITLE}, " +
+                    $"{Product.F_AUTHOR} = @{Product.F_AUTHOR}, " +
                     $"{Product.F_DESCRIPTION} = @{Product.F_DESCRIPTION}, " +
                     $"{Product.F_ISBN} = @{Product.F_ISBN}, " +
-                    $"{Product.F_AUTHOR} = @{Product.F_AUTHOR}, " +
                     $"{Product.F_LISTPRICE} = @{Product.F_LISTPRICE}, " +
                     $"{Product.F_PRICE} = @{Product.F_PRICE}, " +
                     $"{Product.F_PRICE50} = @{Product.F_PRICE50}, " +
                     $"{Product.F_PRICE100} = @{Product.F_PRICE100}, " +
+                    $"{Product.F_CATEGORYID} = @{Product.F_CATEGORYID}, " +
                     $"{Product.F_IMAGEURL} = @{Product.F_IMAGEURL} " +
                     $"WHERE {Product.F_ID} = @{Product.F_ID}; " +
                     "SELECT CAST(SCOPE_IDENTITY() as int)";
@@ -118,6 +120,7 @@ namespace BookWeb.Repository.Repository
                     Price = product.Price,
                     Price50 = product.Price50,
                     Price100 = product.Price100,
+                    CategoryId = product.CategoryId,
                     ImageUrl = product.ImageUrl,
                 });
 
