@@ -49,6 +49,7 @@ namespace BookWeb.Areas.Admin.Controllers
                 Value = u.Id.ToString(),
             });
             ViewBag.CategoryList = categoryList;
+
             ProductVM productVM = new()
             {
                 CategoryList = categoryList,
@@ -86,15 +87,15 @@ namespace BookWeb.Areas.Admin.Controllers
                         {
                             System.IO.File.Delete(oldImagePath);
                         }
-                        
+
                     }
 
                     using (var fileStream = new FileStream(Path.Combine(productPath + fileName), FileMode.Create))
                     {
                         image.CopyTo(fileStream);
                     }
-                    
-                    productVM.Product.ImageUrl = @"\images\product\" + fileName;     
+
+                    productVM.Product.ImageUrl = @"\images\product\" + fileName;
                 }
 
                 if (productVM.Product.Id == 0)
@@ -107,7 +108,7 @@ namespace BookWeb.Areas.Admin.Controllers
                     _productRepository.UpdateProduct(productVM.Product);
                     TempData["success"] = "Product updated successfully";
                 }
-                
+
                 return RedirectToAction("Index");
 
             }
@@ -184,13 +185,27 @@ namespace BookWeb.Areas.Admin.Controllers
         private string? copyImage(IFormFile? image)
         {
             string? fileName = null;
-            
-            
+
+
             {
-                
-                
+
+
             }
             return fileName;
         }
+
+        #region API CALLS
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var products = _productRepository.GetProducts().Result;
+            return Json(new 
+            {
+                data = products,
+            });
+        }
+
+        #endregion
     }
 }
