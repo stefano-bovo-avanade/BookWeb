@@ -52,6 +52,10 @@ namespace BookWeb.Models.Models
         [Display(Name = "Price for 100+")]
         public double Price100 { get; set; }
 
+        //public string? CategoryName { get; set; }
+
+        public Category? Category { get; set; }
+
         [Required]
         public int CategoryId { get; set; }
 

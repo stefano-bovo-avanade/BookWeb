@@ -15,18 +15,7 @@ namespace BookWeb.Repository.Repository
 
         public async Task<Product> GetProduct(int? Id)
         {
-            var query = $"SELECT " +
-                $"{Product.F_ID}, " +
-                $"{Product.F_TITLE}, " +
-                $"{Product.F_DESCRIPTION}, " +
-                $"{Product.F_ISBN}, " +
-                $"{Product.F_AUTHOR}, " +
-                $"{Product.F_LISTPRICE}, " +
-                $"{Product.F_PRICE}, " +
-                $"{Product.F_PRICE50}, " +
-                $"{Product.F_PRICE100}, " +
-                $"{Product.F_CATEGORYID}, " +
-                $"{Product.F_IMAGEURL} " +
+            var query = $"SELECT * " +
                 $"FROM {Product.F_PRODUCTS} where {Product.F_ID} = @{Product.F_ID}";
 
             using (var connection = _context.CreateConnection())
@@ -38,14 +27,57 @@ namespace BookWeb.Repository.Repository
 
         public async Task<IEnumerable<Product>> GetProducts()
         {
-            var query = $"SELECT * FROM {Product.F_PRODUCTS}";
-
+            var query = $"SELECT * FROM {Product.F_PRODUCTS};" +
+                        $"SELECT * FROM {Category.F_CATEGORY};";
+            
             using (var connection = _context.CreateConnection())
             {
-                var result = await connection.QueryAsync<Product>(query);
-                return result.ToList();
+                List<Product> products = null;
+                List<Category> categories = null;
+                using (var lists = await connection.QueryMultipleAsync(query))
+                {
+                    products = lists.Read<Product>().ToList();
+                    categories = lists.Read<Category>().ToList();
+                }
+
+                foreach (var product in products)
+                {
+                    product.Category = categories.Where(c => c.Id == product.CategoryId).Single();
+                }
+                return products;    
             }
         }
+
+        //public async Task<IEnumerable<Product>> GetProducts()
+        //{
+        //    var query = "SELECT " +
+        //        $"P.{Product.F_ID} as Id, " +
+        //        $"P.{Product.F_TITLE} as Title, " +
+        //        $"P.{Product.F_AUTHOR} as Author, " +
+        //        $"P.{Product.F_DESCRIPTION} as [Description], " +
+        //        $"P.{Product.F_ISBN} as ISBN, " +
+        //        $"P.{Product.F_LISTPRICE} as ListPrice, " +
+        //        $"P.{Product.F_PRICE} as Price, " +
+        //        $"P.{Product.F_PRICE50} as Price50, " +
+        //        $"P.{Product.F_PRICE100} as Price100, " +
+        //        $"C.{Category.F_ID} as [CategoryId], " +
+        //        $"C.{Category.F_NOME} as [CategoryName] " +
+        //        $"from {Product.F_PRODUCTS} as P " +
+        //        $"inner join {Category.F_CATEGORY} as C on P.{Product.F_CATEGORYID} = C.{Category.F_ID}";
+
+        //    using (var connection = _context.CreateConnection())
+        //    {
+        //        var result = await connection.QueryAsync<Product, Category, Product>(query,
+        //            (product, category) =>
+        //            {
+        //                product.Category = category;
+        //                return product;
+        //            },
+        //            splitOn: "CategoryId");
+
+        //        return result.ToList();
+        //    }
+        //}
 
         public async Task<int> InsertProduct(Product product)
         {
