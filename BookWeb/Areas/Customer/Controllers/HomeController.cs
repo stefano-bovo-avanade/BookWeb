@@ -1,4 +1,6 @@
 using BookWeb.Models;
+using BookWeb.Models.Models;
+using BookWeb.Repository.Repository;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -8,15 +10,27 @@ namespace BookWeb.Areas.Customer.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IProductRepository _productRepository;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IProductRepository productRepository,
+            ICategoryRepository categoryRepository)
         {
             _logger = logger;
+            _productRepository = productRepository;
+            _categoryRepository = categoryRepository; 
         }
 
         public IActionResult Index()
         {
-            return View();
+            IEnumerable<Product> productList = _productRepository.GetProducts().Result.ToList();
+            return View(productList);
+        }
+
+        public IActionResult Details(int productId)
+        {
+            Product product = _productRepository.GetProduct(productId).Result;
+            return View(product);
         }
 
         public IActionResult Privacy()

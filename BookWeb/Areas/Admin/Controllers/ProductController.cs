@@ -152,48 +152,6 @@ namespace BookWeb.Areas.Admin.Controllers
         //    return View();
         //}
 
-        [HttpGet]
-        public IActionResult Delete(int? Id)
-        {
-            if (Id == null || Id == 0)
-            {
-                return NotFound();
-            }
-            var product = _productRepository.GetProduct(Id).Result;
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-        [HttpPost, ActionName("Delete")]
-        public IActionResult DeletePOST(int? id)
-        {
-            Product? product = _productRepository.GetProduct(id).Result;
-
-            if (id == null)
-            {
-                return NotFound();
-            }
-            _productRepository.DeleteProduct(id);
-            TempData["error"] = "Product deleted successfully";
-            return RedirectToAction("Index");
-        }
-
-        private string? copyImage(IFormFile? image)
-        {
-            string? fileName = null;
-
-
-            {
-
-
-            }
-            return fileName;
-        }
-
         #region API CALLS
 
         [HttpGet]
@@ -203,6 +161,35 @@ namespace BookWeb.Areas.Admin.Controllers
             return Json(new 
             {
                 data = products,
+            });
+        }
+
+        [HttpDelete]
+        public IActionResult Delete(int? id)
+        {
+            var productToBeDeleted = _productRepository.GetProduct(id).Result;
+            if (productToBeDeleted == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Errore nella cancellazione"
+                });
+            }
+
+            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, 
+                productToBeDeleted.ImageUrl.TrimStart('\\'));
+            if (System.IO.File.Exists(oldImagePath))
+            {
+                System.IO.File.Delete(oldImagePath);
+            }
+
+            _productRepository.DeleteProduct(id);
+
+            return Json(new
+            {
+                success = true,
+                message = "Cancellazione avvenuta con successo",
             });
         }
 

@@ -1,5 +1,7 @@
- using BookWeb.Repository.Repository;
+using BookWeb.Repository.Repository;
 using BookWeb.Service.Context;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace BookWeb
 {
@@ -12,6 +14,10 @@ namespace BookWeb
             // Add services to the container.
             builder.Services.AddControllersWithViews();
             builder.Services.AddSingleton<DapperContext>();
+            builder.Services.AddDbContext<ApplicationDbContext>(options => 
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
 

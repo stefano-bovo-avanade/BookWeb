@@ -1,5 +1,4 @@
-﻿using BulkyBook.Models;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace BookWeb.Models.Models
