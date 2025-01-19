@@ -32,8 +32,8 @@ namespace BookWeb.Repository.Repository
             
             using (var connection = _context.CreateConnection())
             {
-                List<Product> products = null;
-                List<Category> categories = null;
+                List<Product>? products = null;
+                List<Category>? categories = null;
                 using (var lists = await connection.QueryMultipleAsync(query))
                 {
                     products = lists.Read<Product>().ToList();

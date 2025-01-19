@@ -18,6 +18,7 @@ namespace BookWeb
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.AddRazorPages();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
@@ -47,7 +48,10 @@ namespace BookWeb
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
-
+            app.MapControllerRoute(
+                name: "login",
+                pattern: "{area=Identity}/{controller=Home}/{action=Index}/{id?}");
+            app.MapRazorPages();
             app.Run();
         }
     }
