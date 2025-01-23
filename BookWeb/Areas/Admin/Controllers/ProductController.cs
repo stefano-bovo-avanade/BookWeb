@@ -2,12 +2,15 @@
 using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository;
+using BookWeb.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class ProductController : Controller
     {
         private readonly ILogger _logger;

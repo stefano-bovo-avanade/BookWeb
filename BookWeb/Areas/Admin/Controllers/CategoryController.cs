@@ -1,11 +1,14 @@
 ﻿using BookWeb.Areas.Customer.Controllers;
 using BookWeb.Models.Models;
 using BookWeb.Repository.Repository;
+using BookWeb.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class CategoryController : Controller
     {
         private readonly ILogger _logger;
