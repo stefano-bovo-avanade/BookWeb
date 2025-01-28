@@ -1,32 +1,43 @@
 ﻿using BookWeb.Areas.Customer.Controllers;
 using BookWeb.Models.Models;
+using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository;
 using BookWeb.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = SD.Role_Admin)]
+    //[Authorize(Roles = SD.Role_Admin)]
     public class CategoryController : Controller
     {
         private readonly ILogger _logger;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IProductRepository _productRepository;
 
-        public CategoryController(ILogger<HomeController> logger, ICategoryRepository categoryRepository)
+        public CategoryController(ILogger<HomeController> logger, ICategoryRepository categoryRepository,
+            IProductRepository productRepository)
         {
             _logger = logger;
             _categoryRepository = categoryRepository;
+            _productRepository = productRepository;
         }
 
         [HttpGet]
         public IActionResult Index()
         {
+            CategoryVM categoryVM = new CategoryVM();
             try
             {
-                var categories = _categoryRepository.GetCategories().Result;
-                return View(categories);
+                categoryVM.CategoryList = _categoryRepository.GetCategories().Result.ToList();
+                categoryVM.CategorySelectList = categoryVM.CategoryList.Select(c => new SelectListItem()
+                {
+                    Text = c.Name,
+                    Value = c.Id.ToString()
+                });
+                return View(categoryVM);
             }
             catch (Exception ex)
             {
@@ -114,6 +125,13 @@ namespace BookWeb.Areas.Admin.Controllers
             _categoryRepository.DeleteCategory(id);
             TempData["error"] = "Category deleted successfully";
             return RedirectToAction("Index");
+        }
+
+        public JsonResult GetProductByCategoryId(int categoryId) 
+        {
+            var products = _productRepository.GetProducts().Result;
+            var productsByCategoryId = products.Where(p => p.CategoryId == categoryId).ToList();
+            return Json(productsByCategoryId);
         }
     }
 }

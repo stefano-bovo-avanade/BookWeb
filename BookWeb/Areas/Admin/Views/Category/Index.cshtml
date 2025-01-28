@@ -1,5 +1,4 @@
-﻿@using BookWeb.Models.Models
-@model List<Category>
+﻿@model CategoryVM
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient m-lg-0 py-3">
         <div class="row">
@@ -32,10 +31,8 @@
                     </th>
                 </tr>
             </thead>
-
-
             <tbody>
-                @foreach (var obj in Model.OrderBy(u => u.DisplayOrder))
+                @foreach (var obj in Model.CategoryList.OrderBy(u => u.DisplayOrder))
                 {
                     <tr>
                         <td>@obj.Name</td>
@@ -54,8 +51,38 @@
                     </tr>
                 }
             </tbody>
-
         </table>
+
+        <select id="categoryId" asp-for="Product.CategoryId" asp-items="@Model.CategorySelectList"></select>
+        <select id="productId"></select>
+
     </div>
 </div>
 
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+            getProductByCategoryId();
+        })
+        $('#categoryId').change(function () {
+            getProductByCategoryId();
+        })
+        var getProductByCategoryId = function () {
+            $.ajax({
+                url: '@Url.Action("GetProductByCategoryId", "Category")',
+                type: 'GET',
+                data:
+                {
+                    categoryId: $('#categoryId').val(),
+                }
+            }).done(function (data)
+            {
+                $('#productId').find('option').remove()
+                $(data).each(function (index, item) {
+                    $('#productId').append('<option value="' + item.id + '">' + item.title + '</option>')
+                });
+            })
+        }
+    </script>
+}

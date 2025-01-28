@@ -1,0 +1,35 @@
+﻿@model Product 
+
+<h2>Hello!!</h2>
+
+<select id="categoryId" asp-for="CategoryId" asp-items="@ViewBag.Categories"></select>
+
+<select asp-for="Id" id="productId"></select>
+
+@section Scripts
+{
+    <script>
+        $(document).ready(function () {
+            getProductByCategoryId();
+        })
+        $('#categoryId').change(function () {
+            getProductByCategoryId();
+        })
+        var getProductByCategoryId = function () {
+            $.ajax({
+                url: '@Url.Action("GetProductByCategoryId", "Test")',
+                type: 'GET',
+                data:
+                {
+                    categoryId: $('#categoryId').val(),
+                }
+            }).done(function (data) 
+            {
+                $('#productId').find('option').remove()
+                $(data).each(function (index, item) {
+                    $('#productId').append('<option value="' + item.id + '">' + item.title + '</option>')
+                });
+            })
+        }
+    </script>
+}
