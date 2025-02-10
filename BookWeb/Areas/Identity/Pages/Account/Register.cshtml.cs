@@ -3,6 +3,7 @@
 #nullable disable
 
 using BookWeb.Models.Models;
+using BookWeb.Repository.Repository;
 using BookWeb.Utility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -27,6 +28,8 @@ namespace BookWeb.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly ICompanyRepository _companyRepository;
+
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
@@ -34,7 +37,8 @@ namespace BookWeb.Areas.Identity.Pages.Account
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ICompanyRepository companyRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -43,6 +47,7 @@ namespace BookWeb.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _companyRepository = companyRepository;
         }
 
         /// <summary>
@@ -109,6 +114,9 @@ namespace BookWeb.Areas.Identity.Pages.Account
             public string? State { get; set; }
             public string? PostalCode { get; set; }
             public string? PhoneNumber { get; set; }
+            public int? CompanyId { get; set; }
+            [ValidateNever]
+            public IEnumerable<SelectListItem> CompanyList { get; set; }
 
         }
 
@@ -129,6 +137,11 @@ namespace BookWeb.Areas.Identity.Pages.Account
                 {
                     Text = i,
                     Value = i
+                }),
+                CompanyList = _companyRepository.GetCompanies().Result.Select(i => new SelectListItem
+                {
+                    Text = i.Name,
+                    Value = i.Id.ToString(),
                 })
             };
 
@@ -153,6 +166,10 @@ namespace BookWeb.Areas.Identity.Pages.Account
                 user.PostalCode = Input.PostalCode;
                 user.PhoneNumber = Input.PhoneNumber;
 
+                if (Input.CompanyId != null) 
+                {
+                    user.CompanyId = Input.CompanyId;
+                }
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
