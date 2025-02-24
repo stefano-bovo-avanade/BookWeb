@@ -2,8 +2,6 @@
 using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository;
-using BookWeb.Utility;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 

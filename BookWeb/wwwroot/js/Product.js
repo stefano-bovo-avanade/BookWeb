@@ -12,13 +12,15 @@ function loadDataTable()
             dataSrc: 'data'
         },
         columns : [
-            { data: 'title', "width":"25%" },
-            { data: 'isbn', "width": "15%" },
-            { data: 'price', "width": "10%" },
-            { data: 'author', "width": "15%" },
-            { data: 'category.name', "width": "10%" },
+            { data: 'title', "width":"20%" , title: "Titolo"},
+            { data: 'isbn', "width": "15%", title: "ISBN" },
+            { data: 'listPrice', "width": "15%", title: "Prezzo di listino" },
+            { data: 'author', "width": "15%", title: "Autore" },
+            { data: 'category_Name', "width": "10%", title: "Categoria" },
             {
                 data: 'id',
+                title: "",
+                orderable: false,
                 render: function (data)
                 {
                     return  `<div class="w-75 btn-group" role="group">
@@ -33,7 +35,8 @@ function loadDataTable()
                             </div>`  
                 },
                 "width": "25%"
-            }]
+            }
+        ]
     });
 }
 

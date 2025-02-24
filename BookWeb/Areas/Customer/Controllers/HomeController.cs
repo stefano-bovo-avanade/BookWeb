@@ -1,8 +1,10 @@
 using BookWeb.Models;
 using BookWeb.Models.Models;
 using BookWeb.Repository.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
@@ -12,25 +14,56 @@ namespace BookWeb.Areas.Customer.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IShoppingCartRepository _shoppingCartRepository;
 
         public HomeController(ILogger<HomeController> logger, IProductRepository productRepository,
-            ICategoryRepository categoryRepository)
+            ICategoryRepository categoryRepository, IShoppingCartRepository shoppingCartRepository)
         {
             _logger = logger;
             _productRepository = productRepository;
-            _categoryRepository = categoryRepository; 
+            _categoryRepository = categoryRepository;
+            _shoppingCartRepository = shoppingCartRepository;
+
         }
 
         public IActionResult Index()
         {
-            IEnumerable<Product> productList = _productRepository.GetProducts().Result.ToList();
+            IEnumerable<VProduct> productList = _productRepository.GetProducts().Result.ToList();
             return View(productList);
         }
 
         public IActionResult Details(int productId)
         {
-            Product product = _productRepository.GetProduct(productId).Result;
-            return View(product);
+            ShoppingCart shoppingCart = new ShoppingCart() 
+            { 
+                Product = _productRepository.GetProduct(productId).Result,
+                Count = 1,
+                ProductId = productId
+            };
+            return View(shoppingCart);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public IActionResult Details(ShoppingCart shoppingCart)
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            shoppingCart.ApplicationUserId = userId;
+            
+            
+            List<ShoppingCart> shoppingCartsPerId = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result.ToList();
+            foreach (ShoppingCart item in shoppingCartsPerId)
+            {
+                if (item.ProductId == shoppingCart.ProductId)
+                {
+                    item.Count += shoppingCart.Count;
+                    _shoppingCartRepository.UpdateShoppingCart(item);
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            _shoppingCartRepository.InsertShoppingCart(shoppingCart);
+            return RedirectToAction(nameof(Index));
         }
 
         public IActionResult Privacy()

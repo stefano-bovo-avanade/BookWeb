@@ -1,7 +1,6 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Service.Context;
 using Dapper;
-using System.Data;
 
 namespace BookWeb.Repository.Repository
 {
@@ -25,25 +24,28 @@ namespace BookWeb.Repository.Repository
             }
         }
 
-        public async Task<IEnumerable<Product>> GetProducts()
+        public async Task<IEnumerable<VProduct>> GetProducts()
         {
-            var query = $"SELECT * FROM {Product.F_PRODUCTS};" +
-                        $"SELECT * FROM {Category.F_CATEGORY};";
-            
+            var query = "SELECT " +
+                "[Id], " +
+                "[Title], " +
+                "[Author], " +
+                "[Description], " +
+                "[ISBN], " +
+                "[ListPrice], " +
+                "[Price], " +
+                "[Price50], " +
+                "[Price100], " +
+                "[CategoryId], " +
+                "[ImageUrl], " +
+                "[Category_Id], " +
+                "[Category_Name], " +
+                "[Category_DisplayOrder] " +
+                "FROM [Bulky].[dbo].[ProductsCategories]";
+ 
             using (var connection = _context.CreateConnection())
             {
-                List<Product>? products = null;
-                List<Category>? categories = null;
-                using (var lists = await connection.QueryMultipleAsync(query))
-                {
-                    products = lists.Read<Product>().ToList();
-                    categories = lists.Read<Category>().ToList();
-                }
-
-                foreach (var product in products)
-                {
-                    product.Category = categories.Where(c => c.Id == product.CategoryId).Single();
-                }
+                var products = await connection.QueryAsync<VProduct>(query);
                 return products;    
             }
         }

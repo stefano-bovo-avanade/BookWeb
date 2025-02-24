@@ -1,13 +1,12 @@
-﻿using BookWeb.Service.Context;
-using BookWeb.Models.Models;
-using Dapper;
-using System.Data;
+﻿using BookWeb.Models.Models;
 
 namespace BookWeb.Repository.Repository
 {
     public interface IShoppingCartRepository
     {
         public Task<ShoppingCart> GetShoppingCart(int? Id);
+
+        public Task<IEnumerable<ShoppingCart>> GetShoppingCartsPerUserId(string? UserId);
 
         public Task<IEnumerable<ShoppingCart>> GetShoppingCarts();
 

@@ -24,6 +24,30 @@ namespace BookWeb.Repository.Repository
             }
         }
 
+        public async Task<IEnumerable<ShoppingCart>> GetShoppingCartsPerUserId(string? ApplicationUserId)
+        {
+            var query = $"SELECT * FROM ShoppingCarts where ApplicationUserId = @ApplicationUserId;" +
+                        $"SELECT * FROM Products;";
+
+            using (var connection = _context.CreateConnection())
+            {
+                List<ShoppingCart>? shoppingCarts = null;
+                List<Product>? products = null;
+                using (var lists = await connection.QueryMultipleAsync(query, new { ApplicationUserId = ApplicationUserId}))
+                {
+                    shoppingCarts = lists.Read<ShoppingCart>().ToList();
+                    products = lists.Read<Product>().ToList();
+                }
+                
+                foreach (var shoppingCart in shoppingCarts)
+                {
+                    shoppingCart.Product = products.Where(p => p.Id == shoppingCart.ProductId).FirstOrDefault();
+                }
+                return shoppingCarts;
+                
+            }
+        }
+
         public async Task<IEnumerable<ShoppingCart>> GetShoppingCarts()
         {
             var query = $"SELECT * FROM ShoppingCarts";
@@ -40,18 +64,16 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 var sql = $"INSERT INTO ShoppingCarts " +
-                    $"(Id, ProductId, Count, Product, ApplicationUserId, ApplicationUser) " +
+                    $"(ProductId, Count, ApplicationUserId) " +
                     $"VALUES " +
-                    $"(@Id, @ProductId, @Count, @Product, @ApplicationUserId, @ApplicationUser); " +
+                    $"(@ProductId, @Count, @ApplicationUserId); " +
                     $"SELECT CAST(SCOPE_IDENTITY() as int)";
                 var result = await connection.QueryAsync<int>(sql,
                 new
                 {
-                    @ProductId = shoppingCart.ProductId,
-                    @Count = shoppingCart.Count,
-                    @Product = shoppingCart.Product,
-                    @ApplicationUserId = shoppingCart.ApplicationUserId,
-                    @ApplicationUser = shoppingCart.ApplicationUser,
+                    ProductId = shoppingCart.ProductId,
+                    Count = shoppingCart.Count,
+                    ApplicationUserId = shoppingCart.ApplicationUserId,
                 });
                 
                 return result.FirstOrDefault();
@@ -63,22 +85,19 @@ namespace BookWeb.Repository.Repository
         {
             using (var connection = _context.CreateConnection())
             {
-                var sql = $"UPDATE Categories SET" +
+                var sql = $"UPDATE ShoppingCarts SET " +
                     $"ProductId  = @ProductId, " +
-                    $"Count  = @Count, " +
-                    $"Product  = @Product, " +
-                    $"ApplicationUserId  = @ApplicationUserId, " +
-                    $"ApplicationUser  = @ProApplicationUserductId, " +
+                    $"[Count] = @Count, " +
+                    $"ApplicationUserId  = @ApplicationUserId " +
                     $"WHERE Id = @Id; " +
                     "SELECT CAST(SCOPE_IDENTITY() as int)";
                 var result = await connection.QueryAsync<int>(sql,
                     new
                     {
-                        @ProductId = shoppingCart.ProductId,
-                        @Count = shoppingCart.Count,
-                        @Product = shoppingCart.Product,
-                        @ApplicationUserId = shoppingCart.ApplicationUserId,
-                        @ApplicationUser = shoppingCart.ApplicationUser,
+                        ProductId = shoppingCart.ProductId,
+                        Count = shoppingCart.Count,
+                        ApplicationUserId = shoppingCart.ApplicationUserId,
+                        Id = shoppingCart.Id
                     });
                 return result.FirstOrDefault();
             }
@@ -86,15 +105,12 @@ namespace BookWeb.Repository.Repository
 
         public async Task<int> DeleteShoppingCart(int? id)
         {
-            var p = new DynamicParameters();
-            p.Add("id", id);
-            p.Add("returnValue", dbType:DbType.Int32, direction: ParameterDirection.ReturnValue);
+            string query = "Delete from dbo.ShoppingCarts where id = @id";
 
             using (var connection = _context.CreateConnection())
             {
-                var result = await connection.ExecuteAsync("[dbo].[DeleteShoppingCart]", p, commandType: CommandType.StoredProcedure);
-                var returnValue = p.Get<int>("returnValue");
-                return returnValue;
+                var result = await connection.ExecuteAsync(query, new { id = id });
+                return result;
             }
         }
     }

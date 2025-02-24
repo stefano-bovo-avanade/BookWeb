@@ -6,7 +6,7 @@ namespace BookWeb.Repository.Repository
     {
         public Task<Product> GetProduct(int? Id);
 
-        public Task<IEnumerable<Product>> GetProducts();
+        public Task<IEnumerable<VProduct>> GetProducts();
 
         public Task<int> InsertProduct(Product Product);
 
