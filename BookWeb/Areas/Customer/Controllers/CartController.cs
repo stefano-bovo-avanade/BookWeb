@@ -1,22 +1,25 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
-using BookWeb.Repository.Repository;
+using BookWeb.Repository.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
     [Area("Customer")]
     [Authorize]
-    public class CartController : Controller
+    public class CartController : BaseController
     {
         private ShoppingCartVM shoppingCartVM { get; set; }
         private readonly IShoppingCartRepository _shoppingCartRepository;
+        private readonly IApplicationUserRepository _applicationUserRepository;
 
-        public CartController(IShoppingCartRepository shoppingCartRepository)
+        public CartController(IShoppingCartRepository shoppingCartRepository, IApplicationUserRepository applicationUserRepository)
         {
             _shoppingCartRepository = shoppingCartRepository;
+            _applicationUserRepository = applicationUserRepository;
         }
 
         public IActionResult Index()
@@ -27,14 +30,43 @@ namespace BookWeb.Areas.Customer.Controllers
             shoppingCartVM = new ShoppingCartVM()
             {
                 ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result,
+                OrderHeader = new(),
             };
             foreach (var cart in shoppingCartVM.ShoppingCartList)
             {
                 cart.Price = GetPriceBasedOnQuantity(cart);
-                shoppingCartVM.OrderTotal += cart.Price;
+                shoppingCartVM.OrderHeader.OrderTotal += cart.Price;
             }
             return View(shoppingCartVM);
             
+        }
+
+        public IActionResult Summary()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            shoppingCartVM = new ShoppingCartVM()
+            {
+                ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result,
+                OrderHeader = new(),
+            };
+
+            shoppingCartVM.OrderHeader.ApplicationUser  = _applicationUserRepository.GetApplicationUser(userId).Result;
+
+            shoppingCartVM.OrderHeader.Name = shoppingCartVM.OrderHeader.ApplicationUser.Name;
+            shoppingCartVM.OrderHeader.PhoneNumber = shoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
+            shoppingCartVM.OrderHeader.City = shoppingCartVM.OrderHeader.ApplicationUser.City;
+            shoppingCartVM.OrderHeader.StreetAddress = shoppingCartVM.OrderHeader.ApplicationUser.StreetAddress;
+            shoppingCartVM.OrderHeader.State = shoppingCartVM.OrderHeader.ApplicationUser.State;
+            shoppingCartVM.OrderHeader.PostalCode = shoppingCartVM.OrderHeader.ApplicationUser.PostalCode;
+
+            foreach (var cart in shoppingCartVM.ShoppingCartList)
+            {
+                cart.Price = GetPriceBasedOnQuantity(cart);
+                shoppingCartVM.OrderHeader.OrderTotal += cart.Price;
+            }
+            return View(shoppingCartVM);
         }
 
         public IActionResult Plus(int cartId) 

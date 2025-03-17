@@ -1,12 +1,12 @@
 ﻿using BookWeb.Models.Models;
-using BookWeb.Repository.Repository;
+using BookWeb.Repository.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    public class TestController : Controller
+    public class TestController : BaseController
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IProductRepository _productRepository;

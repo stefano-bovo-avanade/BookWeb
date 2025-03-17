@@ -1,7 +1,7 @@
 ﻿using BookWeb.Areas.Customer.Controllers;
 using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
-using BookWeb.Repository.Repository;
+using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

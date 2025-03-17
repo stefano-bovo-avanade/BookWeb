@@ -1,6 +1,6 @@
 using BookWeb.Models;
 using BookWeb.Models.Models;
-using BookWeb.Repository.Repository;
+using BookWeb.Repository.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace BookWeb.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IProductRepository _productRepository;

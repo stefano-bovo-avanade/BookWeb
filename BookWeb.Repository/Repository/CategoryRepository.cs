@@ -2,6 +2,7 @@
 using BookWeb.Models.Models;
 using Dapper;
 using System.Data;
+using BookWeb.Repository.Repository.IRepository;
 
 namespace BookWeb.Repository.Repository
 {

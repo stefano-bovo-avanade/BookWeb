@@ -1,4 +1,5 @@
 ﻿using BookWeb.Models.Models;
+using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
 using Dapper;
 
@@ -128,5 +129,6 @@ namespace BookWeb.Repository.Repository
                 var result = await connection.ExecuteAsync(query, new { id = id });
                 return result;
             }
+        }
     }
 }

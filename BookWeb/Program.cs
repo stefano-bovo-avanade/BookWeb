@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using BookWeb.Utility;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using BookWeb.Repository.Repository.IRepository;
 
 namespace BookWeb
 {
@@ -31,6 +32,9 @@ namespace BookWeb
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
+            builder.Services.AddScoped<IOrderHeaderRepository, OrderHeaderRepository>();
+            builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+
 
             //builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<IEmailSender, EmailSender>();

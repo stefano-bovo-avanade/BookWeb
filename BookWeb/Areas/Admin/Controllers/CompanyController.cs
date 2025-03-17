@@ -1,6 +1,6 @@
 ﻿using BookWeb.Areas.Customer.Controllers;
 using BookWeb.Models.Models;
-using BookWeb.Repository.Repository;
+using BookWeb.Repository.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookWeb.Areas.Admin.Controllers

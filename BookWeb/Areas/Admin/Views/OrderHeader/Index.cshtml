@@ -1,0 +1,51 @@
+﻿@model List<OrderHeader>
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header bg-secondary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Order Header List</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pb-3">
+            <div class="col-6">
+            </div>
+            <div class="col-6 text-end">
+                <a asp-controller="OrderHeader" asp-action="Upsert" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i>Create New OrderHeader
+                </a>
+            </div>
+        </div>  
+        <table id="tblData" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <td>Id</td>
+                    <td>ApplicationUserId</td>
+                    <td>OrderDate</td>
+                    <td>ShippingDate</td>
+                    <td>OrderTotal</td>
+                    <td>OrderStatus</td>
+                    <td>PaymentStatus</td>
+                    <td>TrackingNumber</td>
+                    <td>Carrier</td>
+                    <td>PaymentDate</td>
+                    <td>PaymentDueDate</td>
+                    <td>PaymentIntentId</td>
+                    <td>PhoneNumber</td>
+                    <td>Name</td>
+                    <td>StreetAddress</td>
+                    <td>City</td>
+                    <td>State</td>
+                    <td>PostalCode</td>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/js/OrderHeader.js"></script>
+}

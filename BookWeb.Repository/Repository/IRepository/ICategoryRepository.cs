@@ -1,7 +1,7 @@
 ﻿using BookWeb.Models;
 using BookWeb.Models.Models;
 
-namespace BookWeb.Repository.Repository
+namespace BookWeb.Repository.Repository.IRepository
 {
     public interface ICategoryRepository
     {
