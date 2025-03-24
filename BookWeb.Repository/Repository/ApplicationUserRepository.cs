@@ -12,7 +12,7 @@ namespace BookWeb.Repository.Repository
             _context = context;
         }
 
-        public async Task<ApplicationUser> GetApplicationUser(string? Id)
+        public async Task<ApplicationUser?> GetApplicationUser(string Id)
         {
             return _context.ApplicationUsers.Where(a => a.Id == Id).FirstOrDefault();
 

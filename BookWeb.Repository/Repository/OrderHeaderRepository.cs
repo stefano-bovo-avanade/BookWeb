@@ -77,41 +77,41 @@ namespace BookWeb.Repository.Repository
         public async Task<int> InsertOrderHeader(OrderHeader OrderHeader)
         {
             var sql = $"INSERT INTO OrderHeaders " +
-                $"([ApplicationUserId], " +
-                $"[OrderDate], " +
-                $"[ShippingDate], " +
-                $"[OrderTotal], " +
-                $"[OrderStatus], " +
-                $"[PaymentStatus], " +
-                $"[TrackingNumber], " +
-                $"[Carrier], " +
-                $"[PaymentDate], " +
-                $"[PaymentDueDate], " +
-                $"[PaymentIntentId], " +
-                $"[PhoneNumber], " +
-                $"[Name], " +
-                $"[StreetAddress], " +
-                $"[City], " +
-                $"[State], " +
-                $"[PostalCode]) " +
+                $"(ApplicationUserId, " +
+                $"OrderDate, " +
+                $"ShippingDate, " +
+                $"OrderTotal, " +
+                $"OrderStatus, " +
+                $"PaymentStatus, " +
+                $"TrackingNumber, " +
+                $"Carrier, " +
+                $"PaymentDate, " +
+                $"PaymentDueDate, " +
+                $"PaymentIntentId, " +
+                $"PhoneNumber, " +
+                $"Name, " +
+                $"StreetAddress, " +
+                $"City, " +
+                $"State, " +
+                $"PostalCode) " +
                 $"VALUES " +
                 $"(@ApplicationUserId, " +
-                $"@[OrderDate], " +
-                $"@[ShippingDate], " +
-                $"@[OrderTotal], " +
-                $"@[OrderStatus], " +
-                $"[PaymentStatus], " +
-                $"@[TrackingNumber], " +
-                $"@[Carrier], " +
-                $"@[PaymentDate], " +
-                $"@[PaymentDueDate], " +
-                $"@[PaymentIntentId], " +
-                $"@[PhoneNumber], " +
-                $"@[Name], " +
-                $"@[StreetAddress], " +
-                $"@[City], " +
-                $"@[State], " +
-                $"@[PostalCode]); " +
+                $"@OrderDate, " +
+                $"@ShippingDate, " +
+                $"@OrderTotal, " +
+                $"@OrderStatus, " +
+                $"@PaymentStatus, " +
+                $"@TrackingNumber, " +
+                $"@Carrier, " +
+                $"@PaymentDate, " +
+                $"@PaymentDueDate, " +
+                $"@PaymentIntentId, " +
+                $"@PhoneNumber, " +
+                $"@Name, " +
+                $"@StreetAddress, " +
+                $"@City, " +
+                $"@State, " +
+                $"@PostalCode); " +
                 $"SELECT CAST(SCOPE_IDENTITY() as int)";
 
             using (var connection = _context.CreateConnection())

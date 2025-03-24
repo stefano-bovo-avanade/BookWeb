@@ -1,9 +1,9 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository.IRepository;
+using BookWeb.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 using System.Security.Claims;
 
 namespace BookWeb.Areas.Customer.Controllers
@@ -12,14 +12,22 @@ namespace BookWeb.Areas.Customer.Controllers
     [Authorize]
     public class CartController : BaseController
     {
+       //[BindProperty]
         private ShoppingCartVM shoppingCartVM { get; set; }
         private readonly IShoppingCartRepository _shoppingCartRepository;
         private readonly IApplicationUserRepository _applicationUserRepository;
+        private readonly IOrderHeaderRepository _orderHeaderRepository;
+        private readonly IOrderDetailRepository _orderDetailRepository;
 
-        public CartController(IShoppingCartRepository shoppingCartRepository, IApplicationUserRepository applicationUserRepository)
+        public CartController(IShoppingCartRepository shoppingCartRepository, 
+            IApplicationUserRepository applicationUserRepository,
+            IOrderHeaderRepository orderHeaderRepository,
+            IOrderDetailRepository orderDetailRepository)
         {
             _shoppingCartRepository = shoppingCartRepository;
             _applicationUserRepository = applicationUserRepository;
+            _orderHeaderRepository = orderHeaderRepository;
+            _orderDetailRepository = orderDetailRepository;
         }
 
         public IActionResult Index()
@@ -69,6 +77,65 @@ namespace BookWeb.Areas.Customer.Controllers
             return View(shoppingCartVM);
         }
 
+        [HttpPost]
+        [ActionName("Summary")]
+        public IActionResult SummaryPOST(ShoppingCartVM shoppingCartVM)
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            shoppingCartVM.ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result;
+            shoppingCartVM.OrderHeader.ApplicationUser = _applicationUserRepository.GetApplicationUser(userId).Result;
+            shoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
+            shoppingCartVM.OrderHeader.ApplicationUserId = userId;
+
+            foreach (var cart in shoppingCartVM.ShoppingCartList)
+            {
+                cart.Price = GetPriceBasedOnQuantity(cart);
+                shoppingCartVM.OrderHeader.OrderTotal += cart.Price;
+            }
+
+            if (shoppingCartVM.OrderHeader.ApplicationUser.CompanyId.GetValueOrDefault() == 0)
+            {
+                // è un cliente regolare e dobbiamo verificare il pagamento
+                shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+                shoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+            }
+            else
+            {
+                // utente company
+                shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
+                shoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+
+            }
+
+            _orderHeaderRepository.InsertOrderHeader(shoppingCartVM.OrderHeader);
+            foreach (var cart in shoppingCartVM.ShoppingCartList)
+            {
+                OrderDetail orderDetail = new OrderDetail()
+                {
+                    ProductId = cart.ProductId,
+                    OrderHeaderId = shoppingCartVM.OrderHeader.Id,
+                    Count = cart.Count,
+                    Price = cart.Price,
+                };
+                _orderDetailRepository.InsertOrderDetail(orderDetail);
+            }
+
+            if (shoppingCartVM.OrderHeader.ApplicationUser.CompanyId.GetValueOrDefault() == 0)
+            {
+                // è un cliente regolare e dobbiamo verificare il pagamento
+                
+            }
+            
+
+            return RedirectToAction(nameof(OrderConfirmation), new { id = shoppingCartVM.OrderHeader.Id});
+        }
+
+        public IActionResult OrderConfirmation(int id)
+        {
+            return View(id);
+        }
         public IActionResult Plus(int cartId) 
         {
             var cartFromDb = _shoppingCartRepository.GetShoppingCart(cartId).Result;
