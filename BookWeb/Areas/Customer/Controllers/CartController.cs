@@ -87,6 +87,9 @@ namespace BookWeb.Areas.Customer.Controllers
             shoppingCartVM.ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result;
             shoppingCartVM.OrderHeader.ApplicationUser = _applicationUserRepository.GetApplicationUser(userId).Result;
             shoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
+            shoppingCartVM.OrderHeader.ShippingDate = System.DateTime.Now;
+            shoppingCartVM.OrderHeader.PaymentDate = System.DateTime.Now;
+            shoppingCartVM.OrderHeader.PaymentDueDate = System.DateTime.Now;
             shoppingCartVM.OrderHeader.ApplicationUserId = userId;
 
             foreach (var cart in shoppingCartVM.ShoppingCartList)
@@ -109,17 +112,19 @@ namespace BookWeb.Areas.Customer.Controllers
 
             }
 
-            _orderHeaderRepository.InsertOrderHeader(shoppingCartVM.OrderHeader);
+            var result = _orderHeaderRepository.InsertOrderHeader(shoppingCartVM.OrderHeader);
+            int orderHeaderId = result.Result;
+
             foreach (var cart in shoppingCartVM.ShoppingCartList)
             {
                 OrderDetail orderDetail = new OrderDetail()
                 {
                     ProductId = cart.ProductId,
-                    OrderHeaderId = shoppingCartVM.OrderHeader.Id,
+                    OrderHeaderId = orderHeaderId,
                     Count = cart.Count,
                     Price = cart.Price,
                 };
-                _orderDetailRepository.InsertOrderDetail(orderDetail);
+                var r = _orderDetailRepository.InsertOrderDetail(orderDetail);
             }
 
             if (shoppingCartVM.OrderHeader.ApplicationUser.CompanyId.GetValueOrDefault() == 0)

@@ -56,19 +56,13 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 var sql = $"INSERT INTO OrderDetails " +
-                    $"(Id, " +
-                    $"OrderHeaderId, " +
-                    $"OrderHeader, " +
+                    $"(OrderHeaderId, " +
                     $"ProductId, " +
-                    $"Product, " +
                     $"Count, " +
                     $"Price) " +
                     $"VALUES " +
-                    $"(@Id, " +
-                    $"@OrderHeaderId, " +
-                    $"@OrderHeader, " +
+                    $"(@OrderHeaderId, " +
                     $"@ProductId, " +
-                    $"@Product, " +
                     $"@Count, " +
                     $"@Price); " +
                     $"SELECT CAST(SCOPE_IDENTITY() as int)";
@@ -77,9 +71,7 @@ namespace BookWeb.Repository.Repository
                     new 
                     { 
                         OrderHeaderId = OrderDetail.OrderHeaderId,
-                        OrderHeader = OrderDetail.OrderHeader,
                         ProductId = OrderDetail.ProductId,
-                        Product = OrderDetail.Product,
                         Count = OrderDetail.Count,
                         Price = OrderDetail.Price,
                     });
@@ -94,7 +86,6 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 var sql = $"UPDATE OrderDetails SET " +
-                    $"Id = @Id, " +
                     $"OrderHeaderId = @OrderHeaderId, " +
                     $"OrderHeader = @OrderHeader, " +
                     $"ProductId = @ProductId, " +

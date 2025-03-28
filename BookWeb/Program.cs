@@ -36,7 +36,6 @@ namespace BookWeb
             builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
             builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
 
-
             //builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             var app = builder.Build();
@@ -69,5 +68,6 @@ namespace BookWeb
             app.MapRazorPages();
             app.Run();
         }
+
     }
 }
