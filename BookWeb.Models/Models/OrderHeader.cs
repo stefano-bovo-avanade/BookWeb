@@ -26,6 +26,7 @@ namespace BookWeb.Models.Models
         public DateTime PaymentDueDate { get; set; }
 
         //Identifica in modo univoco un pagamento eseguito da un utente per un ordine
+        public string? SessionId { get; set; }
         public string? PaymentIntentId { get; set; }
 
         [Required]

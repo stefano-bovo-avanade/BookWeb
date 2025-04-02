@@ -2,6 +2,7 @@
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
 using Dapper;
+using Microsoft.Extensions.Logging;
 using System.Data;
 
 namespace BookWeb.Repository.Repository
@@ -9,9 +10,11 @@ namespace BookWeb.Repository.Repository
     public class OrderHeaderRepository : IOrderHeaderRepository
     {
         private readonly DapperContext _context;
-        public OrderHeaderRepository(DapperContext context)
+        private readonly ILogger _logger;
+        public OrderHeaderRepository(DapperContext context, ILogger<OrderDetailRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<OrderHeader> GetOrderHeader(int? Id)
@@ -34,7 +37,8 @@ namespace BookWeb.Repository.Repository
                 $"[StreetAddress]," +
                 $"[City]," +
                 $"[State]," +
-                $"[PostalCode] " +
+                $"[PostalCode], " +
+                $"[SessionId] " +
                 $"FROM [Bulky].[dbo].[OrderHeaders] " +
                 $"WHERE Id = @Id";
 
@@ -65,7 +69,8 @@ namespace BookWeb.Repository.Repository
                 $"[StreetAddress]," +
                 $"[City]," +
                 $"[State]," +
-                $"[PostalCode] " +
+                $"[PostalCode], " +
+                $"[SessionId] " +
                 $"FROM [Bulky].[dbo].[OrderHeaders]";
 
             using (var connection = _context.CreateConnection())
@@ -167,13 +172,20 @@ namespace BookWeb.Repository.Repository
             });
             parameters.Add("@returnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
-            using (var connection = _context.CreateConnection())
+            try
             {
+                using (var connection = _context.CreateConnection())
+                {
                     var result = await connection.QueryAsync<int>("[dbo].[InsertUpdateOrderHeader]", parameters, commandType: CommandType.StoredProcedure);
                     int b = parameters.Get<int>("@returnValue");
                     return b;
+                }
             }
-
+            catch (Exception ex)
+            {
+                _logger.Log(LogLevel.Error, "Errore " + ex.Message);
+                throw;
+            }
             
         }
 
@@ -244,16 +256,60 @@ namespace BookWeb.Repository.Repository
                 City = OrderHeader.City,
                 State = OrderHeader.State,
                 PostalCode = OrderHeader.PostalCode,
+                SessionId = OrderHeader.SessionId,
             });
             parameters.Add("@returnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
 
-            using (var connection = _context.CreateConnection())
+            try
             {
-                var result = connection.QueryAsync<int>("[dbo].[InsertUpdateOrderHeader]", parameters, commandType: CommandType.StoredProcedure);
-                var b = parameters.Get<int?>("@returnValue");
-                return result.Result.FirstOrDefault();
+                using (var connection = _context.CreateConnection())
+                {
+                    var result = connection.QueryAsync<int>("[dbo].[InsertUpdateOrderHeader]", parameters, commandType: CommandType.StoredProcedure);
+                    var b = parameters.Get<int?>("@returnValue");
+                    return result.Result.FirstOrDefault();
+                }
             }
+            catch (Exception ex) 
+            {
+                throw;
+            }
+
+
+        }
+
+        public void UpdateStatus(int id, string orderStatus, string? paymentStatus = null)
+        {
+            OrderHeader header = GetOrderHeader(id).Result;
             
+            if (header != null)
+            {
+                header.OrderStatus = orderStatus;
+                if (!string.IsNullOrEmpty(paymentStatus))
+                {
+                    header.PaymentStatus = paymentStatus;
+                }
+                var result = UpdateOrderHeader(header);
+            }
+        }
+
+        public void UpdateStripePaymentID(int id, string sessionId, string paymentIntentId)
+        {
+            OrderHeader header = GetOrderHeader(id).Result;
+
+            if (header != null)
+            {
+                if (!string.IsNullOrEmpty(sessionId))
+                {
+                    header.SessionId = sessionId;
+                }
+
+                if (!string.IsNullOrEmpty(paymentIntentId))
+                {
+                    header.PaymentIntentId = paymentIntentId;
+                    header.PaymentDate = DateTime.Now;
+                }
+                var result = UpdateOrderHeader(header);
+            }
         }
 
         public async Task<int> DeleteOrderHeader(int? id)

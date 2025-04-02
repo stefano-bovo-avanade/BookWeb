@@ -13,6 +13,10 @@ namespace BookWeb.Repository.Repository.IRepository
 
         public Task<int> UpdateOrderHeader(OrderHeader OrderHeader);
 
+        public void UpdateStatus(int id, string orderStatus, string? paymentStatus = null);
+
+        public void UpdateStripePaymentID(int id, string sessionId, string paymentIntentId);
+
         public Task<int> DeleteOrderHeader(int? id);
     }
 }
