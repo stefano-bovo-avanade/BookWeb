@@ -12,13 +12,13 @@ namespace BookWeb.Service.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "City",
-                table: "AspNetUsers",
+                table: "Users",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "Discriminator",
-                table: "AspNetUsers",
+                table: "Users",
                 type: "nvarchar(21)",
                 maxLength: 21,
                 nullable: false,
@@ -26,25 +26,25 @@ namespace BookWeb.Service.Migrations
 
             migrationBuilder.AddColumn<string>(
                 name: "Name",
-                table: "AspNetUsers",
+                table: "Users",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "PostalCode",
-                table: "AspNetUsers",
+                table: "Users",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "State",
-                table: "AspNetUsers",
+                table: "Users",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "StreetAddress",
-                table: "AspNetUsers",
+                table: "Users",
                 type: "nvarchar(max)",
                 nullable: true);
         }
@@ -54,27 +54,27 @@ namespace BookWeb.Service.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "City",
-                table: "AspNetUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "Discriminator",
-                table: "AspNetUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "Name",
-                table: "AspNetUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "PostalCode",
-                table: "AspNetUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "State",
-                table: "AspNetUsers");
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "StreetAddress",
-                table: "AspNetUsers");
+                table: "Users");
         }
     }
 }

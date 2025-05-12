@@ -9,7 +9,7 @@ namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
     //[Authorize(Roles = SD.Role_Admin)]
-    public class ProductController : Controller
+    public class ProductController : BaseController
     {
         private readonly ILogger _logger;
         private readonly IProductRepository _productRepository;

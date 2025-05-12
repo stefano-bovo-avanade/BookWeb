@@ -12,18 +12,18 @@ namespace BookWeb.Service.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "CompanyId",
-                table: "AspNetUsers",
+                table: "Users",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_CompanyId",
-                table: "AspNetUsers",
+                name: "IX_Users_CompanyId",
+                table: "Users",
                 column: "CompanyId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_AspNetUsers_Companies_CompanyId",
-                table: "AspNetUsers",
+                name: "FK_Users_Companies_CompanyId",
+                table: "Users",
                 column: "CompanyId",
                 principalTable: "Companies",
                 principalColumn: "Id");
@@ -33,16 +33,16 @@ namespace BookWeb.Service.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_AspNetUsers_Companies_CompanyId",
-                table: "AspNetUsers");
+                name: "FK_Users_Companies_CompanyId",
+                table: "Users");
 
             migrationBuilder.DropIndex(
-                name: "IX_AspNetUsers_CompanyId",
-                table: "AspNetUsers");
+                name: "IX_Users_CompanyId",
+                table: "Users");
 
             migrationBuilder.DropColumn(
                 name: "CompanyId",
-                table: "AspNetUsers");
+                table: "Users");
         }
     }
 }

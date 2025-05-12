@@ -7,15 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Security.Policy;
-using System.Text.Encodings.Web;
-using static System.Net.WebRequestMethods;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    [Authorize]
     public class CartController : BaseController
     {
        //[BindProperty]
@@ -38,8 +33,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
         public IActionResult Index()
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             shoppingCartVM = new ShoppingCartVM()
             {
@@ -57,8 +51,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
         public IActionResult Summary()
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             shoppingCartVM = new ShoppingCartVM()
             {
@@ -87,15 +80,12 @@ namespace BookWeb.Areas.Customer.Controllers
         [ActionName("Summary")]
         public IActionResult SummaryPOST(ShoppingCartVM shoppingCartVM)
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             shoppingCartVM.ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result;
             shoppingCartVM.OrderHeader.ApplicationUser = _applicationUserRepository.GetApplicationUser(userId).Result;
             shoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
             shoppingCartVM.OrderHeader.ShippingDate = System.DateTime.Now.AddDays(7);
-            shoppingCartVM.OrderHeader.PaymentDate = System.DateTime.Now;
-            shoppingCartVM.OrderHeader.PaymentDueDate = System.DateTime.Now;
             shoppingCartVM.OrderHeader.ApplicationUserId = userId;
 
             foreach (var cart in shoppingCartVM.ShoppingCartList)
@@ -134,6 +124,8 @@ namespace BookWeb.Areas.Customer.Controllers
                 var r = _orderDetailRepository.InsertOrderDetail(orderDetail);
             }
 
+            #region
+
             if (OrderHeaderInserted.ApplicationUser.CompanyId.GetValueOrDefault() == 0)
             {
                 // è un cliente regolare e dobbiamo verificare il pagamento
@@ -148,7 +140,7 @@ namespace BookWeb.Areas.Customer.Controllers
                     Mode = "payment",
                 };
 
-                foreach (var item in shoppingCartVM.ShoppingCartList) 
+                foreach (var item in shoppingCartVM.ShoppingCartList)
                 {
                     var sessionLineItem = new SessionLineItemOptions
                     {
@@ -156,10 +148,10 @@ namespace BookWeb.Areas.Customer.Controllers
                         {
                             UnitAmount = (long)(item.Price * 100),
                             Currency = "eur",
-                            ProductData = new SessionLineItemPriceDataProductDataOptions 
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
                             {
                                 Name = item.Product.Title,
-                                
+
                             }
                         },
                         Quantity = item.Count,
@@ -173,12 +165,17 @@ namespace BookWeb.Areas.Customer.Controllers
                 return new StatusCodeResult(303);
 
             }
+            #endregion
+
             return RedirectToAction(nameof(OrderConfirmation), new { id = OrderHeaderInserted.Id});
         }
 
         public IActionResult OrderConfirmation(int id)
         {
             OrderHeader orderHeader = _orderHeaderRepository.GetOrderHeader(id).Result;
+
+            #region
+
             if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
             {
                 var service = new SessionService();
@@ -190,6 +187,8 @@ namespace BookWeb.Areas.Customer.Controllers
                     _orderHeaderRepository.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
                 }
             }
+
+            #endregion
 
             List<ShoppingCart> shoppingCarts = _shoppingCartRepository.GetShoppingCartsPerUserId(orderHeader.ApplicationUserId).Result.ToList();
             foreach (var cart in shoppingCarts)

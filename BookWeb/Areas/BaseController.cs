@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Globalization;
 
-namespace BookWeb.Areas.Customer.Controllers
+namespace BookWeb.Areas
 {
     public class BaseController : Controller
     {

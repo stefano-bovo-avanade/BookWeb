@@ -22,8 +22,8 @@ namespace BookWeb.Models.Models
         public string? TrackingNumber { get; set; }
         public string? Carrier { get; set; }
 
-        public DateTime PaymentDate { get; set; }
-        public DateTime PaymentDueDate { get; set; }
+        public DateTime? PaymentDate { get; set; }
+        public DateTime? PaymentDueDate { get; set; }
 
         //Identifica in modo univoco un pagamento eseguito da un utente per un ordine
         public string? SessionId { get; set; }

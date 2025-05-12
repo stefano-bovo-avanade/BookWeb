@@ -1,17 +1,15 @@
 ﻿using BookWeb.Models.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace BookWeb.Service.Context
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         { 
         }
 
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<Company> Companies { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<OrderHeader> OrderHeaders { get; set; }

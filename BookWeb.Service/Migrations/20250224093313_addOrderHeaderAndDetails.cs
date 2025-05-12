@@ -39,9 +39,9 @@ namespace BookWeb.Service.Migrations
                 {
                     table.PrimaryKey("PK_OrderHeaders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrderHeaders_AspNetUsers_ApplicationUserId",
+                        name: "FK_OrderHeaders_Users_ApplicationUserId",
                         column: x => x.ApplicationUserId,
-                        principalTable: "AspNetUsers",
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });

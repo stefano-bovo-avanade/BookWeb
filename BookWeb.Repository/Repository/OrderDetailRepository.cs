@@ -1,7 +1,9 @@
 ﻿using BookWeb.Models.Models;
+using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
 using Dapper;
+using System.ComponentModel;
 
 namespace BookWeb.Repository.Repository
 {
@@ -48,6 +50,37 @@ namespace BookWeb.Repository.Repository
             {
                 var result = await connection.QueryAsync<OrderDetail>(query);
                 return result.ToList();
+            }
+        }
+
+        public async Task<IEnumerable<OrderDetail>> GetOrderDetailsPerOrderHeaderId(int Id)
+        {
+            var query = $"SELECT " +
+                $"Id, " +
+                $"OrderHeaderId, " +
+                $"ProductId, " +
+                $"Count, " +
+                $"Price " +
+                $"FROM OrderDetails " +
+                $"where OrderHeaderId = @Id; " +
+                $"SELECT * FROM Products";
+
+            using (var connection = _context.CreateConnection())
+            {
+                List<OrderDetail> orderDetails = null;
+                List<Product> products = null;
+
+                using (var lists = await connection.QueryMultipleAsync(query, new { Id = Id }))
+                {
+                    orderDetails = lists.Read<OrderDetail>().ToList();
+                    products = lists.Read<Product>().ToList();
+                }
+                
+                foreach (var orderDetail in orderDetails)
+                {
+                    orderDetail.Product = products.Where(p => p.Id == orderDetail.ProductId).FirstOrDefault();
+                }
+                return orderDetails;
             }
         }
 

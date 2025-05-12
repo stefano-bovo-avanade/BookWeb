@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookWeb.Repository", "BookW
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookWeb.Service", "BookWeb.Service\BookWeb.Service.csproj", "{74BAF10B-7A69-4235-8191-B30201B973A2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Middleware", "Middleware\Middleware.csproj", "{2FBE9819-B801-4A64-8CB3-96F267FE669A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{74BAF10B-7A69-4235-8191-B30201B973A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74BAF10B-7A69-4235-8191-B30201B973A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74BAF10B-7A69-4235-8191-B30201B973A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FBE9819-B801-4A64-8CB3-96F267FE669A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FBE9819-B801-4A64-8CB3-96F267FE669A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FBE9819-B801-4A64-8CB3-96F267FE669A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FBE9819-B801-4A64-8CB3-96F267FE669A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

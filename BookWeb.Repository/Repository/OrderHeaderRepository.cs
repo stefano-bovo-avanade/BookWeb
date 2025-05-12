@@ -20,6 +20,95 @@ namespace BookWeb.Repository.Repository
         public async Task<OrderHeader> GetOrderHeader(int? Id)
         {
             var query = $"SELECT " +
+                $"Id," +
+                $"ApplicationUserId," +
+                $"OrderDate," +
+                $"ShippingDate," +
+                $"OrderTotal," +
+                $"OrderStatus," +
+                $"PaymentStatus," +
+                $"TrackingNumber," +
+                $"Carrier," +
+                $"PaymentDate," +
+                $"PaymentDueDate," +
+                $"PaymentIntentId," +
+                $"PhoneNumber," +
+                $"Name," +
+                $"StreetAddress," +
+                $"City," +
+                $"State," +
+                $"PostalCode, " +
+                $"SessionId " +
+                $"FROM [Bulky].[dbo].[OrderHeaders] " +
+                $"WHERE Id = @Id;" +
+                $"SELECT * from dbo.Users";
+
+            using (var connection = _context.CreateConnection())
+            {
+                OrderHeader? orderHeader = null;
+                List<ApplicationUser?> Users = null;
+                using (var lists = await connection.QueryMultipleAsync(query, new { Id = Id }))
+                {
+                    orderHeader = lists.Read<OrderHeader>().FirstOrDefault();
+                    Users = lists.Read<ApplicationUser>().ToList();
+                }
+
+                if (orderHeader != null)
+                {
+                    orderHeader.ApplicationUser = Users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault();
+                }
+                return orderHeader;
+
+            }
+        }
+
+        public async Task<IEnumerable<OrderHeader>> GetOrderHeaders()
+        {
+            string query = $"SELECT" +
+                $"[Id]," +
+                $"[ApplicationUserId]," +
+                $"[OrderDate]," +
+                $"[ShippingDate]," +
+                $"[OrderTotal]," +
+                $"[OrderStatus]," +
+                $"[PaymentStatus]," +
+                $"[TrackingNumber]," +
+                $"[Carrier]," +
+                $"[PaymentDate]," +
+                $"[PaymentDueDate]," +
+                $"[PaymentIntentId]," +
+                $"[PhoneNumber]," +
+                $"[Name]," +
+                $"[StreetAddress]," +
+                $"[City]," +
+                $"[State]," +
+                $"[PostalCode], " +
+                $"[SessionId] " +
+                $"FROM [Bulky].[dbo].[OrderHeaders]; " +
+                $"SELECT * from dbo.Users";
+
+            using (var connection = _context.CreateConnection())
+            {
+                List<OrderHeader>? orderHeaders = null;
+                List<ApplicationUser>? Users = null;
+                using (var lists = await connection.QueryMultipleAsync(query))
+                {
+                    orderHeaders = lists.Read<OrderHeader>().ToList();
+                    Users = lists.Read<ApplicationUser>().ToList();
+                }
+
+                foreach (var orderHeader in orderHeaders)
+                {
+                    orderHeader.ApplicationUser = Users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault();
+                }
+                return orderHeaders;
+
+            }
+        }
+
+        public async Task<IEnumerable<OrderHeader>> GetOrderHeaderPerApplicationUserId(string applicationUserId)
+        {
+            string query = $"SELECT" +
                 $"[Id]," +
                 $"[ApplicationUserId]," +
                 $"[OrderDate]," +
@@ -40,115 +129,30 @@ namespace BookWeb.Repository.Repository
                 $"[PostalCode], " +
                 $"[SessionId] " +
                 $"FROM [Bulky].[dbo].[OrderHeaders] " +
-                $"WHERE Id = @Id";
+                $"WHERE ApplicationUserId = @ApplicationUserId; " +
+                $"SELECT * from dbo.Users";
 
             using (var connection = _context.CreateConnection())
             {
-                var result = await connection.QuerySingleAsync<OrderHeader>(query, new { @Id = Id });
-                return result;
-            }
-        }
+                List<OrderHeader>? orderHeaders = null;
+                List<ApplicationUser>? Users = null;
+                using (var lists = await connection.QueryMultipleAsync(query, new { ApplicationUserId = applicationUserId}))
+                {
+                    orderHeaders = lists.Read<OrderHeader>().ToList();
+                    Users = lists.Read<ApplicationUser>().ToList();
+                }
 
-        public async Task<IEnumerable<OrderHeader>> GetOrderHeaders()
-        {
-            var query = $"SELECT" +
-                $"[Id]," +
-                $"[ApplicationUserId]," +
-                $"[OrderDate]," +
-                $"[ShippingDate]," +
-                $"[OrderTotal]," +
-                $"[OrderStatus]," +
-                $"[PaymentStatus]," +
-                $"[TrackingNumber]," +
-                $"[Carrier]," +
-                $"[PaymentDate]," +
-                $"[PaymentDueDate]," +
-                $"[PaymentIntentId]," +
-                $"[PhoneNumber]," +
-                $"[Name]," +
-                $"[StreetAddress]," +
-                $"[City]," +
-                $"[State]," +
-                $"[PostalCode], " +
-                $"[SessionId] " +
-                $"FROM [Bulky].[dbo].[OrderHeaders]";
+                foreach (var orderHeader in orderHeaders)
+                {
+                    orderHeader.ApplicationUser = Users.Where(u => u.Id == orderHeader.ApplicationUserId).FirstOrDefault();
+                }
+                return orderHeaders;
 
-            using (var connection = _context.CreateConnection())
-            {
-                var result = await connection.QueryAsync<OrderHeader>(query);
-                return result.ToList();
             }
         }
 
         public async Task<int> InsertOrderHeader(OrderHeader OrderHeader)
         {
-            //var sql = $"INSERT INTO OrderHeaders " +
-            //    $"(ApplicationUserId, " +
-            //    $"OrderDate, " +
-            //    $"ShippingDate, " +
-            //    $"OrderTotal, " +
-            //    $"OrderStatus, " +
-            //    $"PaymentStatus, " +
-            //    $"TrackingNumber, " +
-            //    $"Carrier, " +
-            //    $"PaymentDate, " +
-            //    $"PaymentDueDate, " +
-            //    $"PaymentIntentId, " +
-            //    $"PhoneNumber, " +
-            //    $"Name, " +
-            //    $"StreetAddress, " +
-            //    $"City, " +
-            //    $"State, " +
-            //    $"PostalCode) " +
-            //    $"VALUES " +
-            //    $"(@ApplicationUserId, " +
-            //    $"@OrderDate, " +
-            //    $"@ShippingDate, " +
-            //    $"@OrderTotal, " +
-            //    $"@OrderStatus, " +
-            //    $"@PaymentStatus, " +
-            //    $"@TrackingNumber, " +
-            //    $"@Carrier, " +
-            //    $"@PaymentDate, " +
-            //    $"@PaymentDueDate, " +
-            //    $"@PaymentIntentId, " +
-            //    $"@PhoneNumber, " +
-            //    $"@Name, " +
-            //    $"@StreetAddress, " +
-            //    $"@City, " +
-            //    $"@State, " +
-            //    $"@PostalCode); " +
-            //    $"SELECT CAST(SCOPE_IDENTITY() as int)";
-
-
-
-            //using (var connection = _context.CreateConnection())
-            //{
-            //    var result = await connection.QueryAsync<int>(sql,
-            //        new 
-            //        { 
-            //            ApplicationUserId = OrderHeader.ApplicationUserId,
-            //            OrderDate = OrderHeader.OrderDate,
-            //            ShippingDate = OrderHeader.ShippingDate,
-            //            OrderTotal = OrderHeader.OrderTotal,
-            //            OrderStatus = OrderHeader.OrderStatus,
-            //            PaymentStatus = OrderHeader.PaymentStatus,
-            //            TrackingNumber = OrderHeader.TrackingNumber,
-            //            Carrier = OrderHeader.Carrier,
-            //            PaymentDate = OrderHeader.PaymentDate,
-            //            PaymentDueDate = OrderHeader.PaymentDueDate,
-            //            PaymentIntentId = OrderHeader.PaymentIntentId,
-            //            PhoneNumber = OrderHeader.PhoneNumber,
-            //            Name = OrderHeader.Name,
-            //            StreetAddress = OrderHeader.StreetAddress,
-            //            City = OrderHeader.City,
-            //            State = OrderHeader.State,
-            //            PostalCode = OrderHeader.PostalCode,
-
-            //        });
-
-            //    return result.FirstOrDefault();
-
             var parameters = new DynamicParameters();
             parameters.AddDynamicParams(new
             {
@@ -191,50 +195,6 @@ namespace BookWeb.Repository.Repository
 
         public async Task<int> UpdateOrderHeader(OrderHeader OrderHeader)
         {
-            //using (var connection = _context.CreateConnection())
-            //{
-            //    var sql = $"UPDATE OrderHeaders SET " +
-            //        $"[ApplicationUserId] = @[ApplicationUserId], " +
-            //        $"[OrderDate] = @[OrderDate], " +
-            //        $"[ShippingDate]= @[ShippingDate], " +
-            //        $"[OrderTotal]= @[OrderTotal], " +
-            //        $"[OrderStatus]= @[OrderStatus], " +
-            //        $"[PaymentStatus]= @[PaymentStatus], " +
-            //        $"[TrackingNumber]= @,[TrackingNumber], " +
-            //        $"[Carrier] = @[Carrier], " +
-            //        $"[PaymentDate] = @[PaymentDate], " +
-            //        $"[PaymentDueDate] = @[PaymentDueDate], " +
-            //        $"[PaymentIntentId] = @[PaymentIntentId], " +
-            //        $"[PhoneNumber] = @[PhoneNumber], " +
-            //        $"[Name] = @[Name], " +
-            //        $"[StreetAddress] = @[StreetAddress], " +
-            //        $"[City] = @[City], " +
-            //        $"[State] = @[State];" +
-            //        "SELECT CAST(SCOPE_IDENTITY() as int)";
-            //    var result = await connection.QueryAsync<int>(sql,
-            //        new 
-            //        {
-            //            ApplicationUserId = OrderHeader.ApplicationUserId,
-            //            OrderDate = OrderHeader.OrderDate,
-            //            ShippingDate = OrderHeader.ShippingDate,
-            //            OrderTotal = OrderHeader.OrderTotal,
-            //            OrderStatus = OrderHeader.OrderStatus,
-            //            PaymentStatus = OrderHeader.PaymentStatus,
-            //            TrackingNumber = OrderHeader.TrackingNumber,
-            //            Carrier = OrderHeader.Carrier,
-            //            PaymentDate = OrderHeader.PaymentDate,
-            //            PaymentDueDate = OrderHeader.PaymentDueDate,
-            //            PaymentIntentId = OrderHeader.PaymentIntentId,
-            //            PhoneNumber = OrderHeader.PhoneNumber,
-            //            Name = OrderHeader.Name,
-            //            StreetAddress = OrderHeader.StreetAddress,
-            //            City = OrderHeader.City,
-            //            State = OrderHeader.State,
-            //            PostalCode = OrderHeader.PostalCode,
-            //        });
-
-            //    return result.FirstOrDefault();
-
             var parameters = new DynamicParameters();
             parameters.AddDynamicParams(new
             {

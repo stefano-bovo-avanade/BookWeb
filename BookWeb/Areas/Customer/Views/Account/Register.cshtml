@@ -1,0 +1,99 @@
+﻿@model InputUser
+
+@{
+    ViewBag.Title = "Registrazione";
+}
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient m-lg-0 py-4">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="py-2 text-white">Registrati</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pt-3">
+            <div class="col-md-12">
+                <form asp-controller="Account" asp-action="Register" method="post" class="row">
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                    <h3 class="border-bottom pb-3 mb-4 text-secondary text-center">Crea un nuovo account.</h3>
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="Name" class="form-control" placeholder="Nome" />
+                        <label class="ms-2 text-muted">Nome</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <label class="ms-2 text-muted">Username</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                        <label class="ms-2 text-muted">Password</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="Email" class="form-control" autocomplete="email" aria-required="true" placeholder="email" />
+                        <label class="ms-2 text-muted">Email</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="Numero di telefono" />
+                        <label class="ms-2 text-muted">Numero di telefono</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="StreetAddress" class="form-control" placeholder="Indirizzo" />
+                        <label class="ms-2 text-muted">Indirizzo</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="City" class="form-control" placeholder="Città" />
+                        <label class="ms-2 text-muted">Città</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="State" class="form-control" placeholder="Stato" />
+                        <label class="ms-2 text-muted">Stato</label>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <input asp-for="PostalCode" class="form-control" placeholder="Codice Postale" />
+                        <label class="ms-2 text-muted">Codice Postale</label>
+                    </div>
+                    @* <div class="form-floating mb-3 col-md-6">
+                        <select asp-for="Input.Role" asp-items="@Model.Input.RoleList" class="form-select">
+                            <option disabled selected>-Seleziona il Ruolo-</option>
+                        </select>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <select asp-for="Input.CompanyId" style="display:none" asp-items="@Model.Input.CompanyList" class="form-select">
+                            <option disabled selected>-Seleziona la compagnia-</option>
+                        </select>
+                    </div> *@
+                    <div class="col-12">
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function ()
+        {
+            $('#Input_Role').change(function ()
+            {
+                var selection = $('#Input_Role Option:Selected').text();
+                if (selection=='Company')
+                {
+                    console.log('Selezionato il valore company')
+                    $('#Input_CompanyId').show();
+                }
+                else
+                {
+                    $('#Input_CompanyId').hide();
+                }
+            })
+        })
+    </script>
+}
+

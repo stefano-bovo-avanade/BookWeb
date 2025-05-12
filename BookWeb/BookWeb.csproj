@@ -5,8 +5,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Areas\Identity\**" />
+    <Content Remove="Areas\Identity\**" />
+    <EmbeddedResource Remove="Areas\Identity\**" />
+    <None Remove="Areas\Identity\**" />
+  </ItemGroup>
 	<ItemGroup>
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.15" />
 	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.11" />
+	<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.15" />
 	<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
@@ -15,28 +24,23 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.8.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.5.4" />
     <PackageReference Include="NLog" Version="5.4.0" />
     <PackageReference Include="Stripe.net" Version="47.4.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.8.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BookWeb.Repository\BookWeb.Repository.csproj" />
     <ProjectReference Include="..\BookWeb.Utility\BookWeb.Utility.csproj" />
+    <ProjectReference Include="..\Middleware\Middleware.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Identity\Data\" />
     <Folder Include="wwwroot\images\Product\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="Areas\Identity\Pages\Account\Manage\_ViewStart.cshtml">
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
   </ItemGroup>
 
 </Project>

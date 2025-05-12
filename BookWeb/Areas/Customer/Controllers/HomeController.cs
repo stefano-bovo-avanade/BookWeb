@@ -8,27 +8,45 @@ using System.Security.Claims;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
+    
     [Area("Customer")]
     public class HomeController : BaseController
     {
+        private readonly IConfiguration _config;
         private readonly ILogger<HomeController> _logger;
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IShoppingCartRepository _shoppingCartRepository;
 
         public HomeController(ILogger<HomeController> logger, IProductRepository productRepository,
-            ICategoryRepository categoryRepository, IShoppingCartRepository shoppingCartRepository)
+            ICategoryRepository categoryRepository, IShoppingCartRepository shoppingCartRepository, 
+            IConfiguration configuration)
         {
             _logger = logger;
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
             _shoppingCartRepository = shoppingCartRepository;
+            _config = configuration;
 
         }
 
         public IActionResult Index()
         {
             IEnumerable<VProduct> productList = _productRepository.GetProducts().Result.ToList();
+
+            //if (!JwtHelper.IsUserLoggedIn(HttpContext, _config))
+            //{
+            //    return RedirectToAction("Login", "Account");
+            //}
+
+            //var token = Request.Cookies["jwt"];
+            //var handler = new JwtSecurityTokenHandler();
+            //var jwt = handler.ReadJwtToken(token);
+
+            //var username = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+            //var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            ViewBag.Username = User!.Identity!.Name;
+
             return View(productList);
         }
 
@@ -44,7 +62,6 @@ namespace BookWeb.Areas.Customer.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public IActionResult Details(ShoppingCart shoppingCart)
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;

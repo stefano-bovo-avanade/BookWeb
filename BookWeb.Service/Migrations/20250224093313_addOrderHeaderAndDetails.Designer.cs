@@ -412,7 +412,7 @@ namespace BookWeb.Service.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("Users", (string)null);
 
                     b.HasDiscriminator().HasValue("IdentityUser");
 

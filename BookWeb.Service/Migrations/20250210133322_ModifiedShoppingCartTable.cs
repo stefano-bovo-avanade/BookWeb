@@ -23,10 +23,10 @@ namespace BookWeb.Service.Migrations
                 oldType: "int");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ShoppingCarts_AspNetUsers_ApplicationUserId",
+                name: "FK_ShoppingCarts_Users_ApplicationUserId",
                 table: "ShoppingCarts",
                 column: "ApplicationUserId",
-                principalTable: "AspNetUsers",
+                principalTable: "Users",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }
@@ -35,7 +35,7 @@ namespace BookWeb.Service.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_ShoppingCarts_AspNetUsers_ApplicationUserId",
+                name: "FK_ShoppingCarts_Users_ApplicationUserId",
                 table: "ShoppingCarts");
 
             migrationBuilder.AlterColumn<int>(

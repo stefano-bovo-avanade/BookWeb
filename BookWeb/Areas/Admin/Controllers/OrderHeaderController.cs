@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class OrderHeaderController : Controller
+    public class OrderHeaderController : BaseController
     {
         private readonly IOrderHeaderRepository _orderHeaderRepository;
         public OrderHeaderController(IOrderHeaderRepository orderHeaderRepository) 
@@ -13,7 +13,7 @@ namespace BookWeb.Areas.Admin.Controllers
         }
         public IActionResult Index()
         {
-            var orderHeaders = _orderHeaderRepository.GetOrderHeaders();
+            var orderHeaders = _orderHeaderRepository.GetOrderHeaders().Result.ToList();
             return View(orderHeaders);
         }
 

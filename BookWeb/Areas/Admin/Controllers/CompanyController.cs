@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class CompanyController : Controller
+    public class CompanyController : BaseController
     {
         private readonly ILogger _logger;
         private readonly IWebHostEnvironment _webHostEnvironment;

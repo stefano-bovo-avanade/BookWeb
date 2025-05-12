@@ -14,13 +14,13 @@ namespace BookWeb.Repository.Repository
 
         public async Task<ApplicationUser?> GetApplicationUser(string Id)
         {
-            return _context.ApplicationUsers.Where(a => a.Id == Id).FirstOrDefault();
+            return _context.Users.Where(a => a.Id.ToString() == Id).FirstOrDefault();
 
         }
 
         public async Task<IEnumerable<ApplicationUser>> GetApplicationUsers()
         {
-            return _context.ApplicationUsers.ToList();
+            return _context.Users.ToList();
         }
     }
 }
