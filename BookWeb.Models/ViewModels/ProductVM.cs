@@ -10,6 +10,5 @@ namespace BookWeb.Models.ViewModels
         [ValidateNever]
         public IEnumerable<SelectListItem> CategoryList { get; set; }
 
-        //public IFormFile? Image { get; set; } = null;
     }
 }

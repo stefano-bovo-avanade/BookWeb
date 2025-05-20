@@ -1,9 +1,10 @@
+using BookWeb.Authentication;
 using BookWeb.Models;
 using BookWeb.Models.Models;
 using BookWeb.Repository.Repository.IRepository;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace BookWeb.Areas.Customer.Controllers
@@ -34,17 +35,7 @@ namespace BookWeb.Areas.Customer.Controllers
         {
             IEnumerable<VProduct> productList = _productRepository.GetProducts().Result.ToList();
 
-            //if (!JwtHelper.IsUserLoggedIn(HttpContext, _config))
-            //{
-            //    return RedirectToAction("Login", "Account");
-            //}
 
-            //var token = Request.Cookies["jwt"];
-            //var handler = new JwtSecurityTokenHandler();
-            //var jwt = handler.ReadJwtToken(token);
-
-            //var username = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
-            //var role = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
             ViewBag.Username = User!.Identity!.Name;
 
             return View(productList);
@@ -64,10 +55,19 @@ namespace BookWeb.Areas.Customer.Controllers
         [HttpPost]
         public IActionResult Details(ShoppingCart shoppingCart)
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            if (!JwtHelper.IsUserLoggedIn(HttpContext, _config))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var token = Request.Cookies["jwt"];
+            var handler = new JwtSecurityTokenHandler();
+            var jwt = handler.ReadJwtToken(token);
+
+            var username = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
+            var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             shoppingCart.ApplicationUserId = userId;
-            
             
             List<ShoppingCart> shoppingCartsPerId = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result.ToList();
             foreach (ShoppingCart item in shoppingCartsPerId)

@@ -4,12 +4,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BookWeb.Models.Models
 {
-    public class BaseUser
+    public class User
     {
         [Key]
         public string Id { get; set; }
         [Required]
         public string UserName { get; set; }
+
+        public string? PasswordHash { get; set; }
 
         [Required]
         public string Name { get; set; }
@@ -33,6 +35,8 @@ namespace BookWeb.Models.Models
         [ValidateNever]
         public Company Company { get; set; }
 
-        public string Role { get; set; } // <-- nuovo campo
+        public Role Role { get; set; }
+
+        public int RoleId { get; set; }
     }
 }

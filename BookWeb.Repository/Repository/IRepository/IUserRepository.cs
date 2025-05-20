@@ -2,11 +2,11 @@
 
 namespace BookWeb.Repository.Repository.IRepository
 {
-    public interface IApplicationUserRepository
+    public interface IUserRepository
     {
-        public Task<ApplicationUser> GetApplicationUser(string? Id);
+        public Task<User> GetUser(string? Id);
 
-        public Task<IEnumerable<ApplicationUser>> GetApplicationUsers();
+        public Task<IEnumerable<User>> GetUsers();
 
         //public Task<int> InsertApplicationUser(ApplicationUser ApplicationUser);
 

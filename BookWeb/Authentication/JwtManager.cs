@@ -8,7 +8,7 @@ namespace BookWeb.Authentication
 {
     public static class JwtManager
     {
-        public static string GenerateToken(ApplicationUser user, IConfiguration config)
+        public static string GenerateToken(User user, IConfiguration config)
         {
             var jwtSettings = config.GetSection("Jwt");
 
@@ -20,7 +20,7 @@ namespace BookWeb.Authentication
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Role, user.Role ?? "User")
+            new Claim(ClaimTypes.Role, user.Role.Description ?? "User")
         };
 
             var token = new JwtSecurityToken(

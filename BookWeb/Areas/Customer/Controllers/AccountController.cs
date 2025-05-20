@@ -1,5 +1,7 @@
 ﻿using BookWeb.Authentication;
 using BookWeb.Models.Models;
+using BookWeb.Service.Context;
+using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,17 +10,27 @@ namespace BookWeb.Areas.Customer.Controllers
     [Area("Customer")]
     public class AccountController : Controller
     {
+        private readonly ApplicationDbContext _context;
         private readonly AuthService _authService;
         private readonly IConfiguration _config;
+        private readonly IMapper _mapper;
 
-        public AccountController(AuthService authService, IConfiguration config)
+        public AccountController(AuthService authService, IConfiguration config, 
+            ApplicationDbContext context, IMapper mapper)
         {
             _authService = authService;
             _config = config;
+            _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public IActionResult Register() => View(new InputUser());
+        public IActionResult Register()
+        {
+
+            //ViewBag.Roles = new SelectList(categories, "Id", "Name");
+            return View(new InputUser());
+        }
 
         [HttpPost]
         public async Task<IActionResult> Register(InputUser inputUser)
@@ -36,20 +48,11 @@ namespace BookWeb.Areas.Customer.Controllers
                 return View();
             }
 
-            var user = new ApplicationUser { UserName = inputUser.UserName };
-            var hasher = new PasswordHasher<ApplicationUser>();
+            var user = new User();
+            var hasher = new PasswordHasher<User>();
+            user = _mapper.From(inputUser).AdaptToType<User>();
             user.Id = Guid.NewGuid().ToString();
             user.PasswordHash = hasher.HashPassword(user, inputUser.Password);
-            user.UserName = inputUser.UserName;
-            user.Name = inputUser.UserName;
-            user.Email = inputUser.Email;
-            user.StreetAddress = inputUser.StreetAddress;
-            user.PhoneNumber = inputUser.PhoneNumber;
-            user.City = inputUser.City;
-            user.State = inputUser.State;
-            user.PostalCode = inputUser.PostalCode;
-            user.Role = inputUser.Role;
-
 
             await _authService.Register(user);
 
@@ -70,6 +73,7 @@ namespace BookWeb.Areas.Customer.Controllers
         public IActionResult Login() => View();
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(InputUser utente)
         {
             var user = await _authService.Authenticate(utente.UserName, utente.Password);

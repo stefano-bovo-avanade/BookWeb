@@ -46,11 +46,11 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 OrderHeader? orderHeader = null;
-                List<ApplicationUser?> Users = null;
+                List<User?> Users = null;
                 using (var lists = await connection.QueryMultipleAsync(query, new { Id = Id }))
                 {
                     orderHeader = lists.Read<OrderHeader>().FirstOrDefault();
-                    Users = lists.Read<ApplicationUser>().ToList();
+                    Users = lists.Read<User>().ToList();
                 }
 
                 if (orderHeader != null)
@@ -90,11 +90,11 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 List<OrderHeader>? orderHeaders = null;
-                List<ApplicationUser>? Users = null;
+                List<User>? Users = null;
                 using (var lists = await connection.QueryMultipleAsync(query))
                 {
                     orderHeaders = lists.Read<OrderHeader>().ToList();
-                    Users = lists.Read<ApplicationUser>().ToList();
+                    Users = lists.Read<User>().ToList();
                 }
 
                 foreach (var orderHeader in orderHeaders)
@@ -135,11 +135,11 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 List<OrderHeader>? orderHeaders = null;
-                List<ApplicationUser>? Users = null;
+                List<User>? Users = null;
                 using (var lists = await connection.QueryMultipleAsync(query, new { ApplicationUserId = applicationUserId}))
                 {
                     orderHeaders = lists.Read<OrderHeader>().ToList();
-                    Users = lists.Read<ApplicationUser>().ToList();
+                    Users = lists.Read<User>().ToList();
                 }
 
                 foreach (var orderHeader in orderHeaders)

@@ -1,13 +1,16 @@
 using BookWeb.Authentication;
+using BookWeb.Common.Mapster;
 using BookWeb.Repository.Repository;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
 using BookWeb.Utility;
+using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Stripe;
+using System.Security.Claims;
 using System.Text;
 
 namespace BookWeb
@@ -34,7 +37,8 @@ namespace BookWeb
                     ValidateAudience = true,
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
+                    RoleClaimType = ClaimTypes.Role
                 };
 
                 options.Events = new JwtBearerEvents
@@ -62,10 +66,11 @@ namespace BookWeb
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
             builder.Services.AddScoped<IOrderHeaderRepository, OrderHeaderRepository>();
             builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
-            builder.Services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
-            
+            builder.Services.AddMapster();
+            MapsterConfig.RegisterMappings();
 
             var app = builder.Build();
 
@@ -79,13 +84,10 @@ namespace BookWeb
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<String>();
+            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
             app.UseRouting();
-            app.MapWhen(context => context.Request.Path.StartsWithSegments("/api"), appBuilder =>
-            {
-                appBuilder.UseMiddleware<JwtMiddleware>();
-            });
-            app.UseAuthentication();
+            app.UseAuthentication(); // se vuoi abilitare auth anche fuori dalle API
             app.UseAuthorization();
 
             app.MapControllerRoute(

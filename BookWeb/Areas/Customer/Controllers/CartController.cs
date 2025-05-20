@@ -2,7 +2,6 @@
 using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Utility;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
@@ -16,12 +15,12 @@ namespace BookWeb.Areas.Customer.Controllers
        //[BindProperty]
         private ShoppingCartVM shoppingCartVM { get; set; }
         private readonly IShoppingCartRepository _shoppingCartRepository;
-        private readonly IApplicationUserRepository _applicationUserRepository;
+        private readonly IUserRepository _applicationUserRepository;
         private readonly IOrderHeaderRepository _orderHeaderRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
 
         public CartController(IShoppingCartRepository shoppingCartRepository, 
-            IApplicationUserRepository applicationUserRepository,
+            IUserRepository applicationUserRepository,
             IOrderHeaderRepository orderHeaderRepository,
             IOrderDetailRepository orderDetailRepository)
         {
@@ -59,7 +58,7 @@ namespace BookWeb.Areas.Customer.Controllers
                 OrderHeader = new(),
             };
 
-            shoppingCartVM.OrderHeader.ApplicationUser  = _applicationUserRepository.GetApplicationUser(userId).Result;
+            shoppingCartVM.OrderHeader.ApplicationUser  = _applicationUserRepository.GetUser(userId).Result;
 
             shoppingCartVM.OrderHeader.Name = shoppingCartVM.OrderHeader.ApplicationUser.Name;
             shoppingCartVM.OrderHeader.PhoneNumber = shoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
@@ -83,7 +82,7 @@ namespace BookWeb.Areas.Customer.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             shoppingCartVM.ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result;
-            shoppingCartVM.OrderHeader.ApplicationUser = _applicationUserRepository.GetApplicationUser(userId).Result;
+            shoppingCartVM.OrderHeader.ApplicationUser = _applicationUserRepository.GetUser(userId).Result;
             shoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
             shoppingCartVM.OrderHeader.ShippingDate = System.DateTime.Now.AddDays(7);
             shoppingCartVM.OrderHeader.ApplicationUserId = userId;
@@ -110,7 +109,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             var orderInsertedId = _orderHeaderRepository.InsertOrderHeader(shoppingCartVM.OrderHeader).Result;
             var OrderHeaderInserted = _orderHeaderRepository.GetOrderHeader(orderInsertedId).Result;
-            OrderHeaderInserted.ApplicationUser = _applicationUserRepository.GetApplicationUser(OrderHeaderInserted.ApplicationUserId).Result;
+            OrderHeaderInserted.ApplicationUser = _applicationUserRepository.GetUser(OrderHeaderInserted.ApplicationUserId).Result;
 
             foreach (var cart in shoppingCartVM.ShoppingCartList)
             {

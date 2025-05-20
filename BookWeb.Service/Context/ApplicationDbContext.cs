@@ -1,5 +1,6 @@
 ﻿using BookWeb.Models.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace BookWeb.Service.Context
 {
@@ -9,11 +10,12 @@ namespace BookWeb.Service.Context
         { 
         }
 
-        public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<Company> Companies { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<OrderHeader> OrderHeaders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Role> Roles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -53,7 +55,14 @@ namespace BookWeb.Service.Context
                     State = "NY",
                     PhoneNumber = "1113335555"
                 }
-                );
+            );
+
+            builder.Entity<Role>().HasData(
+                new Role { Id = 1, Description = "Admin" },
+                new Role { Id = 2, Description = "Company" },
+                new Role { Id = 3, Description = "Employee" },
+                new Role { Id = 4, Description = "Customer" }
+            );
         }
     }
 }

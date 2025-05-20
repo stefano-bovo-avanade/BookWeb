@@ -22,56 +22,6 @@ namespace BookWeb.Service.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("BookWeb.Models.Models.ApplicationUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("City")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PostalCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("State")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("StreetAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.ToTable("Users");
-                });
-
             modelBuilder.Entity("BookWeb.Models.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -316,6 +266,45 @@ namespace BookWeb.Service.Migrations
                     b.ToTable("Product");
                 });
 
+            modelBuilder.Entity("BookWeb.Models.Models.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Company"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Employee"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Description = "Customer"
+                        });
+                });
+
             modelBuilder.Entity("BookWeb.Models.Models.ShoppingCart", b =>
                 {
                     b.Property<int>("Id")
@@ -343,13 +332,55 @@ namespace BookWeb.Service.Migrations
                     b.ToTable("ShoppingCarts");
                 });
 
-            modelBuilder.Entity("BookWeb.Models.Models.ApplicationUser", b =>
+            modelBuilder.Entity("BookWeb.Models.Models.User", b =>
                 {
-                    b.HasOne("BookWeb.Models.Models.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId");
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Navigation("Company");
+                    b.Property<string>("City")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostalCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("State")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StreetAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("BookWeb.Models.Models.OrderDetail", b =>
@@ -373,7 +404,7 @@ namespace BookWeb.Service.Migrations
 
             modelBuilder.Entity("BookWeb.Models.Models.OrderHeader", b =>
                 {
-                    b.HasOne("BookWeb.Models.Models.ApplicationUser", "ApplicationUser")
+                    b.HasOne("BookWeb.Models.Models.User", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -395,7 +426,7 @@ namespace BookWeb.Service.Migrations
 
             modelBuilder.Entity("BookWeb.Models.Models.ShoppingCart", b =>
                 {
-                    b.HasOne("BookWeb.Models.Models.ApplicationUser", "ApplicationUser")
+                    b.HasOne("BookWeb.Models.Models.User", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -410,6 +441,28 @@ namespace BookWeb.Service.Migrations
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("BookWeb.Models.Models.User", b =>
+                {
+                    b.HasOne("BookWeb.Models.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId");
+
+                    b.HasOne("BookWeb.Models.Models.Role", "Role")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("BookWeb.Models.Models.Role", b =>
+                {
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

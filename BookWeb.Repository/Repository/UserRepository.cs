@@ -4,21 +4,21 @@ using BookWeb.Service.Context;
 
 namespace BookWeb.Repository.Repository
 {
-    public class ApplicationUserRepository : IApplicationUserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _context;
-        public ApplicationUserRepository(ApplicationDbContext context)
+        public UserRepository(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public async Task<ApplicationUser?> GetApplicationUser(string Id)
+        public async Task<User?> GetUser(string Id)
         {
             return _context.Users.Where(a => a.Id.ToString() == Id).FirstOrDefault();
 
         }
 
-        public async Task<IEnumerable<ApplicationUser>> GetApplicationUsers()
+        public async Task<IEnumerable<User>> GetUsers()
         {
             return _context.Users.ToList();
         }
