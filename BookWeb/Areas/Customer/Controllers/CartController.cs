@@ -2,6 +2,7 @@
 using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
 using Stripe.Checkout;
@@ -10,6 +11,7 @@ using System.Security.Claims;
 namespace BookWeb.Areas.Customer.Controllers
 {
     [Area("Customer")]
+    [Authorize]
     public class CartController : BaseController
     {
        //[BindProperty]
@@ -197,6 +199,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             return View(id);
         }
+
         public IActionResult Plus(int cartId) 
         {
             var cartFromDb = _shoppingCartRepository.GetShoppingCart(cartId).Result;

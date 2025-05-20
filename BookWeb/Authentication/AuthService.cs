@@ -17,7 +17,9 @@ namespace BookWeb.Authentication
 
         public async Task<User> Authenticate(string username, string password)
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.UserName == username);
+            var user = await _dbContext.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserName == username);
             if (user == null) return null;
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);

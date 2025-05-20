@@ -21,7 +21,15 @@ namespace BookWeb
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews()
+            .AddMvcOptions(options =>
+            {
+                options.RespectBrowserAcceptHeader = true;
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All);
+            });
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -73,7 +81,8 @@ namespace BookWeb
             MapsterConfig.RegisterMappings();
 
             var app = builder.Build();
-
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Console.OutputEncoding = Encoding.UTF8;
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

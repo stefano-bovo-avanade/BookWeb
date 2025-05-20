@@ -1,51 +1,70 @@
-var dataTable;
 $(document).ready(function () {
-    var dataTable = $('#tblData');
-    loadDataTable();
+    if ($("#tblData").length) {
+        loadDataTable();
+    }
 });
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
+        scrollY: '400px',
+        scrollX: true,
+        scrollCollapse: true,
+        paging: true,
         ajax:
         {
             url: '/admin/OrderHeader/GetAll',
             dataSrc: 'data'
         },
         columns: [
-            { data: 'ApplicationUserId', title: "Id Application User" },
-            { data: 'OrderDate', title: "Data ordine" },
-            { data: 'ShippingDate', title: "Data spedizione" },
-            { data: 'OrderTotal', title: "Totale ordine" },
-            { data: 'OrderStatus', title: "Stato ordine" },
-            { data: 'PaymentStatus', title: "Stato pagamento" },
-            { data: 'TrackingNumber', title: "Numero di tracking" },
-            { data: 'Carrier', title: "Spedizioniere" },
-            { data: 'PaymentDate', title: "Data pagamento" },
-            { data: 'PaymentDueDate', title: "Data scadenza pagamento" },
-            { data: 'PaymentIntentId', title: "Id pagamento" },
-            { data: 'PhoneNumber', title: "Numero di telefono" },
-            { data: 'Name', title: "Nome" },
-            { data: 'StreetAddress', title: "Indirizzo" },
-            { data: 'City', title: "Citt‡" },
-            { data: 'State', title: "Stato" },
-            { data: 'PostalCode', title: "Codice postale" }
-            //{
-            //    data: 'id',
-            //    title: "",
-            //    orderable: false,
-            //    render: function (data) {
-            //        return `<div class="w-75 btn-group" role="group">
-            //                    <a href="/admin/product/upsert?id=${data}" class="btn btn-primary mx-2">
-            //                        <i class="bi bi-pencil-square"></i>
-            //                        Edit
-            //                    </a>
-            //                    <a onClick=Delete('/admin/product/delete/${data}') class="btn btn-danger mx-2">
-            //                        <i class="bi bi-trash-fill"></i>
-            //                        Delete
-            //                    </a>
-            //                </div>`
-            //    },
-            //    "width": "25%"
-            //}
+            { data: 'id', visible: false },
+            { data: 'applicationUserId', width: '300px', title: "Id Application User" },
+            {
+                data: 'orderDate',
+                width: '200px',
+                title: 'Data ordine',
+                render: function (data) {
+                    const date = new Date(data);
+                    return date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString('it-IT');
+                }
+            },
+            {
+                data: 'shippingDate',
+                width: '200px',
+                title: 'Data spedizione',
+                render: function (data) {
+                    const date = new Date(data);
+                    return date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString('it-IT');
+                }
+            },
+            { data: 'orderTotal', width: '150px', title: "Totale ordine" },
+            { data: 'orderStatus', width: '150px', title: "Stato ordine" },
+            { data: 'paymentStatus', title: "Stato pagamento" },
+            { data: 'trackingNumber', width: '150px', title: "Numero di tracking" },
+            { data: 'carrier', title: "Spedizioniere" },
+            {
+                data: 'paymentDate',
+                width: '200px',
+                title: 'Data pagamento',
+                render: function (data) {
+                    const date = new Date(data);
+                    return date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString('it-IT');
+                }
+            },
+            {
+                data: 'paymentDueDate',
+                width: '200px',
+                title: 'Data scadenza pagamento',
+                render: function (data) {
+                    const date = new Date(data);
+                    return date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString('it-IT');
+                }
+            },
+            { data: 'paymentIntentId', title: "Id pagamento" },
+            { data: 'phoneNumber', width: '150px', title: "Numero di telefono" },
+            { data: 'name', title: "Nome" },
+            { data: 'streetAddress', title: "Indirizzo" },
+            { data: 'city', title: "Citt√†" },
+            { data: 'state', title: "Stato" },
+            { data: 'postalCode', width: '150px', title: "Codice postale" }
         ]
     });
 }

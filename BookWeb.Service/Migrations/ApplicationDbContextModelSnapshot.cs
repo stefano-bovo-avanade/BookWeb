@@ -274,7 +274,7 @@ namespace BookWeb.Service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -286,22 +286,22 @@ namespace BookWeb.Service.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Admin"
+                            Name = "Admin"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "Company"
+                            Name = "Company"
                         },
                         new
                         {
                             Id = 3,
-                            Description = "Employee"
+                            Name = "Employee"
                         },
                         new
                         {
                             Id = 4,
-                            Description = "Customer"
+                            Name = "Customer"
                         });
                 });
 

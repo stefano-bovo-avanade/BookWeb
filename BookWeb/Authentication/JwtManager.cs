@@ -20,7 +20,7 @@ namespace BookWeb.Authentication
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
-            new Claim(ClaimTypes.Role, user.Role.Description ?? "User")
+            new Claim(ClaimTypes.Role, user.Role.Name ?? "User")
         };
 
             var token = new JwtSecurityToken(

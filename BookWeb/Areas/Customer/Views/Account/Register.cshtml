@@ -1,4 +1,4 @@
-﻿@model InputUser
+﻿@model UserVM
 @using BookWeb.Utility
 
 @{
@@ -20,55 +20,51 @@
                     <h3 class="border-bottom pb-3 mb-4 text-secondary text-center">Crea un nuovo account.</h3>
                     <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="Name" class="form-control" placeholder="Nome" />
+                        <input asp-for="InputUser.Name" class="form-control" placeholder="Nome" />
                         <label class="ms-2 text-muted">Nome</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <input asp-for="InputUser.UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                         <label class="ms-2 text-muted">Username</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                        <input asp-for="InputUser.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
                         <label class="ms-2 text-muted">Password</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="Email" class="form-control" autocomplete="email" aria-required="true" placeholder="email" />
+                        <input asp-for="InputUser.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="email" />
                         <label class="ms-2 text-muted">Email</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="PhoneNumber" class="form-control" placeholder="Numero di telefono" />
+                        <input asp-for="InputUser.PhoneNumber" class="form-control" placeholder="Numero di telefono" />
                         <label class="ms-2 text-muted">Numero di telefono</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="StreetAddress" class="form-control" placeholder="Indirizzo" />
+                        <input asp-for="InputUser.StreetAddress" class="form-control" placeholder="Indirizzo" />
                         <label class="ms-2 text-muted">Indirizzo</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="City" class="form-control" placeholder="Città" />
+                        <input asp-for="InputUser.City" class="form-control" placeholder="Città" />
                         <label class="ms-2 text-muted">Città</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="State" class="form-control" placeholder="Stato" />
+                        <input asp-for="InputUser.State" class="form-control" placeholder="Stato" />
                         <label class="ms-2 text-muted">Stato</label>
                     </div>
                     <div class="form-floating mb-3 col-md-6">
-                        <input asp-for="PostalCode" class="form-control" placeholder="Codice Postale" />
+                        <input asp-for="InputUser.PostalCode" class="form-control" placeholder="Codice Postale" />
                         <label class="ms-2 text-muted">Codice Postale</label>
                     </div>
-                    @* @if (User.IsInRole("Admin"))
-                    {
-                        <div class="form-floating mb-3 col-md-6">
-                            <select asp-for="Role" asp-items="" class="form-select">
-                                <option disabled selected>-Seleziona il Ruolo-</option>
-
-                            </select>
-                        </div>
-                    } *@
-                    @* <div class="form-floating mb-3 col-md-6">
-                        <select asp-for="Input.CompanyId" style="display:none" asp-items="@Model.Input.CompanyList" class="form-select">
+                    <div class="form-floating mb-3 col-md-6">
+                        <select id="Input_Role" asp-for="InputUser.RoleId" asp-items="@Model.Roles" class="form-select">
+                            <option disabled selected>-Seleziona il Ruolo-</option>
+                        </select>
+                    </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <select id="Input_CompanyId" asp-for="InputUser.CompanyId" style="display:none" asp-items="@Model.Companies" class="form-select">
                             <option disabled selected>-Seleziona la compagnia-</option>
                         </select>
-                    </div> *@
+                    </div>
                     <div class="col-12">
                         <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
                     </div>

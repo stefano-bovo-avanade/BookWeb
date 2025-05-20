@@ -1,9 +1,11 @@
 ﻿using BookWeb.Authentication;
 using BookWeb.Models.Models;
+using BookWeb.Models.ViewModels;
 using BookWeb.Service.Context;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
@@ -27,9 +29,31 @@ namespace BookWeb.Areas.Customer.Controllers
         [HttpGet]
         public IActionResult Register()
         {
-
-            //ViewBag.Roles = new SelectList(categories, "Id", "Name");
-            return View(new InputUser());
+            var roles = _context.Roles.ToList();
+            var companies = _context.Companies.ToList();
+            UserVM userVM = new UserVM()
+            {
+                InputUser = new(),
+                Companies = new SelectList(companies, "Id", "Name"),
+            };
+            if (User.IsInRole("Admin"))
+            {
+                userVM.Roles = roles.Select(r => new SelectListItem
+                {
+                    Value = r.Id.ToString(),
+                    Text = r.Name,
+                });
+            }
+            else
+            {
+                userVM.Roles = roles.Select(r => new SelectListItem
+                {
+                    Value = r.Id.ToString(),
+                    Text = r.Name,
+                }).Where(i => i.Text != "Admin");
+            }
+                //ViewBag.Roles = new SelectList(categories, "Id", "Name");
+                return View(userVM);
         }
 
         [HttpPost]

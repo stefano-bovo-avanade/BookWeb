@@ -58,10 +58,10 @@ namespace BookWeb.Service.Context
             );
 
             builder.Entity<Role>().HasData(
-                new Role { Id = 1, Description = "Admin" },
-                new Role { Id = 2, Description = "Company" },
-                new Role { Id = 3, Description = "Employee" },
-                new Role { Id = 4, Description = "Customer" }
+                new Role { Id = 1, Name = "Admin" },
+                new Role { Id = 2, Name = "Company" },
+                new Role { Id = 3, Name = "Employee" },
+                new Role { Id = 4, Name = "Customer" }
             );
         }
     }
