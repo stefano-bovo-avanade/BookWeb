@@ -9,6 +9,7 @@ using System.Security.Claims;
 namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize]
     public class OrderController : BaseController
     {
         private readonly IOrderHeaderRepository _orderHeaderRepository;
@@ -78,29 +79,27 @@ namespace BookWeb.Areas.Admin.Controllers
             }
             else 
             {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 orderHeaders = _orderHeaderRepository.GetOrderHeaderPerApplicationUserId(userId).Result;
             }
 
-
-                switch (status)
-                {
-                    case "inprocess":
-                        orderHeaders = orderHeaders.Where(u => u.OrderStatus == SD.StatusInProcess);
-                        break;
-                    case "pending":
-                        orderHeaders = orderHeaders.Where(u => u.PaymentStatus == SD.PaymentStatusDelayedPayment);
-                        break;
-                    case "completed":
-                        orderHeaders = orderHeaders.Where(u => u.PaymentStatus == SD.StatusShipped);
-                        break;
-                    case "approved":
-                        orderHeaders = orderHeaders.Where(u => u.OrderStatus == SD.StatusApproved);
-                        break;
-                    default:
-                        break;
-                }
+            switch (status)
+            {
+                case "inprocess":
+                    orderHeaders = orderHeaders.Where(u => u.OrderStatus == SD.StatusInProcess);
+                    break;
+                case "pending":
+                    orderHeaders = orderHeaders.Where(u => u.PaymentStatus == SD.PaymentStatusDelayedPayment);
+                    break;
+                case "completed":
+                    orderHeaders = orderHeaders.Where(u => u.PaymentStatus == SD.StatusShipped);
+                    break;
+                case "approved":
+                    orderHeaders = orderHeaders.Where(u => u.OrderStatus == SD.StatusApproved);
+                    break;
+                default:
+                    break;
+            }
             return Json(new
             {
                 data = orderHeaders,
