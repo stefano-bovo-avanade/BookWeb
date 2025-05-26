@@ -45,19 +45,19 @@ namespace BookWeb.Repository.Repository
 
             using (var connection = _context.CreateConnection())
             {
-                OrderHeader? orderHeader = null;
-                List<User?> Users = null;
+                OrderHeader orderHeader;
+                List<User> users;
                 using (var lists = await connection.QueryMultipleAsync(query, new { Id = Id }))
                 {
-                    orderHeader = lists.Read<OrderHeader>().FirstOrDefault();
-                    Users = lists.Read<User>().ToList();
+                    orderHeader = lists.Read<OrderHeader>().FirstOrDefault()!;
+                    users = lists.Read<User>().ToList()!;
                 }
 
                 if (orderHeader != null)
                 {
-                    orderHeader.ApplicationUser = Users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault();
+                    orderHeader.ApplicationUser = users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault()!;
                 }
-                return orderHeader;
+                return orderHeader!;
 
             }
         }
@@ -85,21 +85,25 @@ namespace BookWeb.Repository.Repository
                 $"[PostalCode], " +
                 $"[SessionId] " +
                 $"FROM [Bulky].[dbo].[OrderHeaders]; " +
-                $"SELECT * from dbo.Users";
+                $"SELECT * from dbo.Users; " +
+                $"SELECT * from dbo.Roles;";
 
             using (var connection = _context.CreateConnection())
             {
                 List<OrderHeader>? orderHeaders = null;
-                List<User>? Users = null;
+                List<User>? users = null;
+                List<Role>? roles = null;
                 using (var lists = await connection.QueryMultipleAsync(query))
                 {
                     orderHeaders = lists.Read<OrderHeader>().ToList();
-                    Users = lists.Read<User>().ToList();
+                    users = lists.Read<User>().ToList();
+                    roles = lists.Read<Role>().ToList();
                 }
 
                 foreach (var orderHeader in orderHeaders)
                 {
-                    orderHeader.ApplicationUser = Users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault();
+                    orderHeader.ApplicationUser = users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault()!;
+                    orderHeader.ApplicationUser.Role = roles.Where(r => r.Id == orderHeader.ApplicationUser.RoleId).FirstOrDefault()!;
                 }
                 return orderHeaders;
 
@@ -144,7 +148,7 @@ namespace BookWeb.Repository.Repository
 
                 foreach (var orderHeader in orderHeaders)
                 {
-                    orderHeader.ApplicationUser = Users.Where(u => u.Id == orderHeader.ApplicationUserId).FirstOrDefault();
+                    orderHeader.ApplicationUser = Users.Where(u => u.Id == orderHeader.ApplicationUserId).FirstOrDefault()!;
                 }
                 return orderHeaders;
 
@@ -224,9 +228,9 @@ namespace BookWeb.Repository.Repository
             {
                 using (var connection = _context.CreateConnection())
                 {
-                    var result = connection.QueryAsync<int>("[dbo].[InsertUpdateOrderHeader]", parameters, commandType: CommandType.StoredProcedure);
+                    var result = await connection.QueryAsync<int>("[dbo].[InsertUpdateOrderHeader]", parameters, commandType: CommandType.StoredProcedure);
                     var b = parameters.Get<int?>("@returnValue");
-                    return result.Result.FirstOrDefault();
+                    return result.FirstOrDefault();
                 }
             }
             catch (Exception ex) 
