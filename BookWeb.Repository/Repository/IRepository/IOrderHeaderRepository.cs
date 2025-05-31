@@ -9,7 +9,7 @@ namespace BookWeb.Repository.Repository.IRepository
 
         public Task<IEnumerable<OrderHeader>> GetOrderHeaders();
 
-        public Task<IEnumerable<OrderHeader>> GetOrderHeaderPerApplicationUserId(string applicationUserId);
+        public Task<IEnumerable<OrderHeader>> GetOrderHeaderPerUserId(string UserId);
 
         public Task<int> InsertOrderHeader(OrderHeader OrderHeader);
 

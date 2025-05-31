@@ -1,5 +1,4 @@
 using BookWeb.Authentication;
-using BookWeb.Common.Mapster;
 using BookWeb.Repository.Repository;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
@@ -12,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Stripe;
 using System.Security.Claims;
 using System.Text;
+using MapsterConfig = BookWeb.Areas.Mapster.MapsterConfig;
 
 namespace BookWeb
 {

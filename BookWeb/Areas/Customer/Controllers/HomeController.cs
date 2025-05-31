@@ -67,7 +67,7 @@ namespace BookWeb.Areas.Customer.Controllers
             var username = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
             var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            shoppingCart.ApplicationUserId = userId;
+            shoppingCart.UserId = userId;
             
             List<ShoppingCart> shoppingCartsPerId = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result.ToList();
             foreach (ShoppingCart item in shoppingCartsPerId)

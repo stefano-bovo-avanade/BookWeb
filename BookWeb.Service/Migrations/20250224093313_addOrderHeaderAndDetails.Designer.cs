@@ -152,7 +152,7 @@ namespace BookWeb.Service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -212,7 +212,7 @@ namespace BookWeb.Service.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("OrderHeaders");
                 });
@@ -274,7 +274,7 @@ namespace BookWeb.Service.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
@@ -286,7 +286,7 @@ namespace BookWeb.Service.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasIndex("UserId");
 
                     b.HasIndex("ProductId");
 
@@ -500,7 +500,7 @@ namespace BookWeb.Service.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("BookWeb.Models.Models.ApplicationUser", b =>
+            modelBuilder.Entity("BookWeb.Models.Models.User", b =>
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
 
@@ -525,7 +525,7 @@ namespace BookWeb.Service.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.HasDiscriminator().HasValue("ApplicationUser");
+                    b.HasDiscriminator().HasValue("User");
                 });
 
             modelBuilder.Entity("BookWeb.Models.Models.OrderDetail", b =>
@@ -549,13 +549,13 @@ namespace BookWeb.Service.Migrations
 
             modelBuilder.Entity("BookWeb.Models.Models.OrderHeader", b =>
                 {
-                    b.HasOne("BookWeb.Models.Models.ApplicationUser", "ApplicationUser")
+                    b.HasOne("BookWeb.Models.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ApplicationUser");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BookWeb.Models.Models.Product", b =>
@@ -571,9 +571,9 @@ namespace BookWeb.Service.Migrations
 
             modelBuilder.Entity("BookWeb.Models.Models.ShoppingCart", b =>
                 {
-                    b.HasOne("BookWeb.Models.Models.ApplicationUser", "ApplicationUser")
+                    b.HasOne("BookWeb.Models.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -583,7 +583,7 @@ namespace BookWeb.Service.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ApplicationUser");
+                    b.Navigation("User");
 
                     b.Navigation("Product");
                 });
@@ -639,7 +639,7 @@ namespace BookWeb.Service.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BookWeb.Models.Models.ApplicationUser", b =>
+            modelBuilder.Entity("BookWeb.Models.Models.User", b =>
                 {
                     b.HasOne("BookWeb.Models.Models.Company", "Company")
                         .WithMany()

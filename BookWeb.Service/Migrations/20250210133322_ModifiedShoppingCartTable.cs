@@ -11,11 +11,11 @@ namespace BookWeb.Service.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_ShoppingCarts_Product_ApplicationUserId",
+                name: "FK_ShoppingCarts_Product_UserId",
                 table: "ShoppingCarts");
 
             migrationBuilder.AlterColumn<string>(
-                name: "ApplicationUserId",
+                name: "UserId",
                 table: "ShoppingCarts",
                 type: "nvarchar(450)",
                 nullable: false,
@@ -23,9 +23,9 @@ namespace BookWeb.Service.Migrations
                 oldType: "int");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ShoppingCarts_Users_ApplicationUserId",
+                name: "FK_ShoppingCarts_Users_UserId",
                 table: "ShoppingCarts",
-                column: "ApplicationUserId",
+                column: "UserId",
                 principalTable: "Users",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
@@ -35,11 +35,11 @@ namespace BookWeb.Service.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_ShoppingCarts_Users_ApplicationUserId",
+                name: "FK_ShoppingCarts_Users_UserId",
                 table: "ShoppingCarts");
 
             migrationBuilder.AlterColumn<int>(
-                name: "ApplicationUserId",
+                name: "UserId",
                 table: "ShoppingCarts",
                 type: "int",
                 nullable: false,
@@ -47,9 +47,9 @@ namespace BookWeb.Service.Migrations
                 oldType: "nvarchar(450)");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ShoppingCarts_Product_ApplicationUserId",
+                name: "FK_ShoppingCarts_Product_UserId",
                 table: "ShoppingCarts",
-                column: "ApplicationUserId",
+                column: "UserId",
                 principalTable: "Product",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);

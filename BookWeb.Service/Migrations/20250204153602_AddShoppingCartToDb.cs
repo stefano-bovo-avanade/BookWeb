@@ -18,14 +18,14 @@ namespace BookWeb.Service.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
-                    ApplicationUserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ShoppingCarts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ShoppingCarts_Product_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
+                        name: "FK_ShoppingCarts_Product_UserId",
+                        column: x => x.UserId,
                         principalTable: "Products",
                         principalColumn: "Id");
                     table.ForeignKey(
@@ -37,9 +37,9 @@ namespace BookWeb.Service.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ShoppingCarts_ApplicationUserId",
+                name: "IX_ShoppingCarts_UserId",
                 table: "ShoppingCarts",
-                column: "ApplicationUserId");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ShoppingCarts_ProductId",

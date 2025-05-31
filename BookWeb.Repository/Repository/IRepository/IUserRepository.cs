@@ -8,10 +8,10 @@ namespace BookWeb.Repository.Repository.IRepository
 
         public Task<IEnumerable<User>> GetUsers();
 
-        //public Task<int> InsertApplicationUser(ApplicationUser ApplicationUser);
+        //public Task<int> InsertUser(User User);
 
-        //public Task<int> UpdateApplicationUser(ApplicationUser ApplicationUser);
+        //public Task<int> UpdateUser(User User);
 
-        //public Task<int> DeleteApplicationUser(int? id);
+        //public Task<int> DeleteUser(int? id);
     }
 }

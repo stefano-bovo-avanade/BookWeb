@@ -16,7 +16,7 @@ function loadDataTable() {
         },
         columns: [
             { data: 'id', visible: false },
-            { data: 'applicationUserId', width: '300px', title: "Id Application User" },
+            { data: 'UserId', width: '300px', title: "Id Application User" },
             {
                 data: 'orderDate',
                 width: '200px',

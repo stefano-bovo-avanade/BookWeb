@@ -21,7 +21,7 @@ namespace BookWeb.Repository.Repository
         {
             var query = $"SELECT " +
                 $"Id," +
-                $"ApplicationUserId," +
+                $"UserId," +
                 $"OrderDate," +
                 $"ShippingDate," +
                 $"OrderTotal," +
@@ -55,7 +55,7 @@ namespace BookWeb.Repository.Repository
 
                 if (orderHeader != null)
                 {
-                    orderHeader.ApplicationUser = users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault()!;
+                    orderHeader.User = users.Where(u => u.Id.ToString() == orderHeader.UserId).FirstOrDefault()!;
                 }
                 return orderHeader!;
 
@@ -66,7 +66,7 @@ namespace BookWeb.Repository.Repository
         {
             string query = $"SELECT" +
                 $"[Id]," +
-                $"[ApplicationUserId]," +
+                $"[UserId]," +
                 $"[OrderDate]," +
                 $"[ShippingDate]," +
                 $"[OrderTotal]," +
@@ -102,19 +102,19 @@ namespace BookWeb.Repository.Repository
 
                 foreach (var orderHeader in orderHeaders)
                 {
-                    orderHeader.ApplicationUser = users.Where(u => u.Id.ToString() == orderHeader.ApplicationUserId).FirstOrDefault()!;
-                    orderHeader.ApplicationUser.Role = roles.Where(r => r.Id == orderHeader.ApplicationUser.RoleId).FirstOrDefault()!;
+                    orderHeader.User = users.Where(u => u.Id.ToString() == orderHeader.UserId).FirstOrDefault()!;
+                    orderHeader.User.Role = roles.Where(r => r.Id == orderHeader.User.RoleId).FirstOrDefault()!;
                 }
                 return orderHeaders;
 
             }
         }
 
-        public async Task<IEnumerable<OrderHeader>> GetOrderHeaderPerApplicationUserId(string applicationUserId)
+        public async Task<IEnumerable<OrderHeader>> GetOrderHeaderPerUserId(string UserId)
         {
             string query = $"SELECT" +
                 $"[Id]," +
-                $"[ApplicationUserId]," +
+                $"[UserId]," +
                 $"[OrderDate]," +
                 $"[ShippingDate]," +
                 $"[OrderTotal]," +
@@ -133,14 +133,14 @@ namespace BookWeb.Repository.Repository
                 $"[PostalCode], " +
                 $"[SessionId] " +
                 $"FROM [Bulky].[dbo].[OrderHeaders] " +
-                $"WHERE ApplicationUserId = @ApplicationUserId; " +
+                $"WHERE UserId = @UserId; " +
                 $"SELECT * from dbo.Users";
 
             using (var connection = _context.CreateConnection())
             {
                 List<OrderHeader>? orderHeaders = null;
                 List<User>? Users = null;
-                using (var lists = await connection.QueryMultipleAsync(query, new { ApplicationUserId = applicationUserId}))
+                using (var lists = await connection.QueryMultipleAsync(query, new { UserId = UserId}))
                 {
                     orderHeaders = lists.Read<OrderHeader>().ToList();
                     Users = lists.Read<User>().ToList();
@@ -148,7 +148,7 @@ namespace BookWeb.Repository.Repository
 
                 foreach (var orderHeader in orderHeaders)
                 {
-                    orderHeader.ApplicationUser = Users.Where(u => u.Id == orderHeader.ApplicationUserId).FirstOrDefault()!;
+                    orderHeader.User = Users.Where(u => u.Id == orderHeader.UserId).FirstOrDefault()!;
                 }
                 return orderHeaders;
 
@@ -160,7 +160,7 @@ namespace BookWeb.Repository.Repository
             var parameters = new DynamicParameters();
             parameters.AddDynamicParams(new
             {
-                ApplicationUserId = OrderHeader.ApplicationUserId,
+                UserId = OrderHeader.UserId,
                 OrderDate = OrderHeader.OrderDate,
                 ShippingDate = OrderHeader.ShippingDate,
                 OrderTotal = OrderHeader.OrderTotal,
@@ -203,7 +203,7 @@ namespace BookWeb.Repository.Repository
             parameters.AddDynamicParams(new
             {
                 Id = OrderHeader.Id,
-                ApplicationUserId = OrderHeader.ApplicationUserId,
+                UserId = OrderHeader.UserId,
                 OrderDate = OrderHeader.OrderDate,
                 ShippingDate = OrderHeader.ShippingDate,
                 OrderTotal = OrderHeader.OrderTotal,

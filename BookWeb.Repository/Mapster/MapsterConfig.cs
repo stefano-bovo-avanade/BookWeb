@@ -1,7 +1,7 @@
 ﻿using BookWeb.Models.Models;
 using Mapster;
 
-namespace BookWeb.Common.Mapster
+namespace BookWeb.Repository.Mapster
 {
     public static class MapsterConfig
     {

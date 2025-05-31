@@ -17,7 +17,7 @@ namespace BookWeb.Service.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ShippingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     OrderTotal = table.Column<double>(type: "float", nullable: false),
@@ -39,8 +39,8 @@ namespace BookWeb.Service.Migrations
                 {
                     table.PrimaryKey("PK_OrderHeaders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_OrderHeaders_Users_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
+                        name: "FK_OrderHeaders_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -85,9 +85,9 @@ namespace BookWeb.Service.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderHeaders_ApplicationUserId",
+                name: "IX_OrderHeaders_UserId",
                 table: "OrderHeaders",
-                column: "ApplicationUserId");
+                column: "UserId");
         }
 
         /// <inheritdoc />

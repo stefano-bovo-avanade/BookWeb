@@ -14,7 +14,7 @@ namespace BookWeb.Repository.Repository
 
         public async Task<User?> GetUser(string Id)
         {
-            return _context.Users.Where(a => a.Id.ToString() == Id).FirstOrDefault();
+            return _context.Users.Where(u => u.Id.ToString() == Id).FirstOrDefault();
 
         }
 

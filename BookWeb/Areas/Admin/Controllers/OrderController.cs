@@ -80,7 +80,7 @@ namespace BookWeb.Areas.Admin.Controllers
             else 
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                orderHeaders = _orderHeaderRepository.GetOrderHeaderPerApplicationUserId(userId).Result;
+                orderHeaders = _orderHeaderRepository.GetOrderHeaderPerUserId(userId).Result;
             }
 
             switch (status)

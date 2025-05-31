@@ -2,6 +2,7 @@
 using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Utility;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stripe;
@@ -17,19 +18,22 @@ namespace BookWeb.Areas.Customer.Controllers
        //[BindProperty]
         private ShoppingCartVM shoppingCartVM { get; set; }
         private readonly IShoppingCartRepository _shoppingCartRepository;
-        private readonly IUserRepository _applicationUserRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IOrderHeaderRepository _orderHeaderRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IMapper _mapper;
 
         public CartController(IShoppingCartRepository shoppingCartRepository, 
-            IUserRepository applicationUserRepository,
+            IUserRepository userRepository,
             IOrderHeaderRepository orderHeaderRepository,
-            IOrderDetailRepository orderDetailRepository)
+            IOrderDetailRepository orderDetailRepository,
+            IMapper mapper)
         {
             _shoppingCartRepository = shoppingCartRepository;
-            _applicationUserRepository = applicationUserRepository;
+            _userRepository = userRepository;
             _orderHeaderRepository = orderHeaderRepository;
             _orderDetailRepository = orderDetailRepository;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
@@ -54,20 +58,14 @@ namespace BookWeb.Areas.Customer.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            shoppingCartVM = new ShoppingCartVM()
+            var shoppingCartVM = new ShoppingCartVM()
             {
                 ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result,
                 OrderHeader = new(),
             };
 
-            shoppingCartVM.OrderHeader.ApplicationUser  = _applicationUserRepository.GetUser(userId).Result;
-
-            shoppingCartVM.OrderHeader.Name = shoppingCartVM.OrderHeader.ApplicationUser.Name;
-            shoppingCartVM.OrderHeader.PhoneNumber = shoppingCartVM.OrderHeader.ApplicationUser.PhoneNumber;
-            shoppingCartVM.OrderHeader.City = shoppingCartVM.OrderHeader.ApplicationUser.City;
-            shoppingCartVM.OrderHeader.StreetAddress = shoppingCartVM.OrderHeader.ApplicationUser.StreetAddress;
-            shoppingCartVM.OrderHeader.State = shoppingCartVM.OrderHeader.ApplicationUser.State;
-            shoppingCartVM.OrderHeader.PostalCode = shoppingCartVM.OrderHeader.ApplicationUser.PostalCode;
+            shoppingCartVM.OrderHeader.User = _userRepository.GetUser(userId).Result;
+            shoppingCartVM.OrderHeader = _mapper.From(shoppingCartVM.OrderHeader.User).AdaptTo(shoppingCartVM.OrderHeader);
 
             foreach (var cart in shoppingCartVM.ShoppingCartList)
             {
@@ -84,10 +82,10 @@ namespace BookWeb.Areas.Customer.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             shoppingCartVM.ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result;
-            shoppingCartVM.OrderHeader.ApplicationUser = _applicationUserRepository.GetUser(userId).Result;
+            shoppingCartVM.OrderHeader.User = _userRepository.GetUser(userId).Result;
             shoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
             shoppingCartVM.OrderHeader.ShippingDate = System.DateTime.Now.AddDays(7);
-            shoppingCartVM.OrderHeader.ApplicationUserId = userId;
+            shoppingCartVM.OrderHeader.UserId = userId;
 
             foreach (var cart in shoppingCartVM.ShoppingCartList)
             {
@@ -95,7 +93,7 @@ namespace BookWeb.Areas.Customer.Controllers
                 shoppingCartVM.OrderHeader.OrderTotal += cart.Price;
             }
 
-            if (shoppingCartVM.OrderHeader.ApplicationUser.CompanyId.GetValueOrDefault() == 0)
+            if (shoppingCartVM.OrderHeader.User.CompanyId.GetValueOrDefault() == 0)
             {
                 // è un cliente regolare e dobbiamo verificare il pagamento
                 shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
@@ -111,7 +109,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             var orderInsertedId = _orderHeaderRepository.InsertOrderHeader(shoppingCartVM.OrderHeader).Result;
             var OrderHeaderInserted = _orderHeaderRepository.GetOrderHeader(orderInsertedId).Result;
-            OrderHeaderInserted.ApplicationUser = _applicationUserRepository.GetUser(OrderHeaderInserted.ApplicationUserId).Result;
+            OrderHeaderInserted.User = _userRepository.GetUser(OrderHeaderInserted.UserId).Result;
 
             foreach (var cart in shoppingCartVM.ShoppingCartList)
             {
@@ -127,7 +125,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             #region
 
-            if (OrderHeaderInserted.ApplicationUser.CompanyId.GetValueOrDefault() == 0)
+            if (OrderHeaderInserted.User.CompanyId.GetValueOrDefault() == 0)
             {
                 // è un cliente regolare e dobbiamo verificare il pagamento
                 StripeConfiguration.ApiKey = "sk_test_51R7aotGdXWKcYFAs2sZ5ESMHEs5J4HBCI7WtgSbhpIE3MoCMlOg6oXS0h0kSjRmehAF8e3afnsbKEp5y3kbIWGfi00i9yZmmBx";
@@ -191,7 +189,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             #endregion
 
-            List<ShoppingCart> shoppingCarts = _shoppingCartRepository.GetShoppingCartsPerUserId(orderHeader.ApplicationUserId).Result.ToList();
+            List<ShoppingCart> shoppingCarts = _shoppingCartRepository.GetShoppingCartsPerUserId(orderHeader.UserId).Result.ToList();
             foreach (var cart in shoppingCarts)
             {
                 _shoppingCartRepository.DeleteShoppingCart(cart.Id);

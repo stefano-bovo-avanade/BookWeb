@@ -77,6 +77,7 @@ namespace BookWeb.Areas.Customer.Controllers
             user = _mapper.From(inputUser).AdaptToType<User>();
             user.Id = Guid.NewGuid().ToString();
             user.PasswordHash = hasher.HashPassword(user, inputUser.Password);
+            user.Role = _context.Roles.Where(r => r.Id == inputUser.RoleId).FirstOrDefault()!;
 
             await _authService.Register(user);
 

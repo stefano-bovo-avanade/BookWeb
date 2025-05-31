@@ -8,10 +8,10 @@ namespace BookWeb.Models.Models
     {
         public int Id { get; set; }
 
-        public string ApplicationUserId { get; set; }
-        [ForeignKey("ApplicationUserId")]
+        public string UserId { get; set; }
+        [ForeignKey("UserId")]
         [ValidateNever]
-        public User ApplicationUser { get; set; }
+        public User User { get; set; }
 
         public DateTime OrderDate { get; set; }
         public DateTime ShippingDate { get; set; }
