@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 
 namespace BookWeb.Service.Context
 {
@@ -14,7 +14,12 @@ namespace BookWeb.Service.Context
             _connectionString = _configuration.GetConnectionString("DefaultConnection");
         }
 
+
         public IDbConnection CreateConnection()
-            => new SqlConnection(_connectionString);
+        {
+            var builder = new SqlConnectionStringBuilder(_connectionString);
+            return new SqlConnection(builder.ConnectionString);
+        }
+
     }
 }

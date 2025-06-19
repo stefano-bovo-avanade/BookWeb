@@ -1,11 +1,8 @@
-using BookWeb.Authentication;
 using BookWeb.Models;
 using BookWeb.Models.Models;
 using BookWeb.Repository.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
@@ -34,53 +31,20 @@ namespace BookWeb.Areas.Customer.Controllers
         public IActionResult Index()
         {
             IEnumerable<VProduct> productList = _productRepository.GetProducts().Result.ToList();
-
-
             ViewBag.Username = User!.Identity!.Name;
-
             return View(productList);
         }
 
-        public IActionResult Details(int productId)
+        public IActionResult ProductDetail(int productId)
         {
-            ShoppingCart shoppingCart = new ShoppingCart() 
-            { 
-                Product = _productRepository.GetProduct(productId).Result,
-                Count = 1,
-                ProductId = productId
-            };
-            return View(shoppingCart);
-        }
+            Product product = _productRepository.GetProduct(productId).Result;
 
-        [HttpPost]
-        public IActionResult Details(ShoppingCart shoppingCart)
-        {
-            if (!JwtHelper.IsUserLoggedIn(HttpContext, _config))
+            if (product == null)
             {
-                return RedirectToAction("Login", "Account");
+                return NotFound();
             }
 
-            var token = Request.Cookies["jwt"];
-            var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
-
-            var username = jwt.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value;
-            var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            shoppingCart.UserId = userId;
-            
-            List<ShoppingCart> shoppingCartsPerId = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result.ToList();
-            foreach (ShoppingCart item in shoppingCartsPerId)
-            {
-                if (item.ProductId == shoppingCart.ProductId)
-                {
-                    item.Count += shoppingCart.Count;
-                    _shoppingCartRepository.UpdateShoppingCart(item);
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-            _shoppingCartRepository.InsertShoppingCart(shoppingCart);
-            return RedirectToAction(nameof(Index));
+            return View(product);
         }
 
         public IActionResult Privacy()

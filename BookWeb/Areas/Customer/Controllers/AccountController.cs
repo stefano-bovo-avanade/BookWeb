@@ -1,7 +1,8 @@
-﻿using BookWeb.Authentication;
+﻿using BookWeb.Common.Authentication;
 using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
 using BookWeb.Service.Context;
+using BookWeb.Utility.Authentication;
 using MapsterMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

@@ -3,7 +3,7 @@ using BookWeb.Service.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookWeb.Authentication
+namespace BookWeb.Utility.Authentication
 {
     public class AuthService
     {

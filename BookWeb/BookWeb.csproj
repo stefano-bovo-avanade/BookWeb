@@ -36,9 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BookWeb.Repository\BookWeb.Repository.csproj" />
     <ProjectReference Include="..\BookWeb.Utility\BookWeb.Utility.csproj" />
     <ProjectReference Include="..\Middleware\Middleware.csproj" />
+	<ProjectReference Include="..\BookWeb.Repository\BookWeb.Repository.csproj" />
+	<ProjectReference Include="..\BookWeb.Service\BookWeb.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,10 +1,11 @@
 ﻿using BookWeb.Models.Models;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace BookWeb.Authentication
+namespace BookWeb.Common.Authentication
 {
     public static class JwtManager
     {

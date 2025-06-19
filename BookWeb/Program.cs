@@ -1,8 +1,9 @@
-using BookWeb.Authentication;
 using BookWeb.Repository.Repository;
 using BookWeb.Repository.Repository.IRepository;
+using BookWeb.Service;
 using BookWeb.Service.Context;
 using BookWeb.Utility;
+using BookWeb.Utility.Authentication;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -62,12 +63,17 @@ namespace BookWeb
                 };
             });
             builder.Services.AddAuthorization();
-            // Add services to the container.
 
+
+            
+            // 1. Configurazione del DbContext
             builder.Services.AddSingleton<DapperContext>();
             builder.Services.AddDbContext<ApplicationDbContext>(options => 
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+
+
+            // 2. Registrazione dei repository
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
@@ -79,6 +85,10 @@ namespace BookWeb
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddMapster();
             MapsterConfig.RegisterMappings();
+
+            // 3. Registrazione dei servizi
+            builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
+
 
             var app = builder.Build();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
