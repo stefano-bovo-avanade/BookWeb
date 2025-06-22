@@ -2,20 +2,18 @@
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
 using BookWeb.Utility.ShoppingCartHelper;
-using Microsoft.EntityFrameworkCore;
 
 namespace BookWeb.Service
 {
     public class ShoppingCartService : IShoppingCartService
     {
-        private readonly ApplicationDbContext _context;
         private readonly IShoppingCartRepository _shoppingCartRepository;
         private readonly CartHelper _cartHelper;
 
-        public ShoppingCartService(ApplicationDbContext context, IShoppingCartRepository shoppingCartRepository
+        public ShoppingCartService(IShoppingCartRepository shoppingCartRepository
             , CartHelper cartHelper)
         {
-            _context = context;
+         
             _shoppingCartRepository = shoppingCartRepository;
             _cartHelper = cartHelper;
         }
@@ -25,10 +23,7 @@ namespace BookWeb.Service
             var token = _cartHelper.GetCartToken();
             var isAuthenticated = _cartHelper.IsAuthenticated();
 
-            var cart = await _context.ShoppingCarts
-            .Include(c => c.Items)
-            .FirstOrDefaultAsync(c =>
-            isAuthenticated ? c.UserId == token : c.CartToken == token);
+            var cart = await _shoppingCartRepository.GetCartAsync(token, isAuthenticated);
 
             if (cart == null)
             {
@@ -38,8 +33,8 @@ namespace BookWeb.Service
                     CartToken = isAuthenticated ? null : token,
                 };
 
-                _context.ShoppingCarts.Add(cart);
-                await _context.SaveChangesAsync();
+                await _shoppingCartRepository.AddCartAsync(cart);
+                
             }
 
             return cart;
@@ -61,12 +56,12 @@ namespace BookWeb.Service
                 
             }
 
-            item.Price = UpdatePriceBasedOnQuantity(item);
+            item!.Price = UpdatePriceBasedOnQuantity(item);
             foreach (ShoppingCartItem i in cart.Items)
             {
-                cart.cartTotal += i.Price;
+                cart.CartTotal += i.Price;
             }
-            await _context.SaveChangesAsync();
+            await _shoppingCartRepository.SaveAsync();
         }
 
         private int UpdatePriceBasedOnQuantity(ShoppingCartItem shoppingCartItem)

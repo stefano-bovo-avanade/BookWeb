@@ -1,9 +1,7 @@
 ﻿using BookWeb.Models.Models;
-using BookWeb.Models.ViewModels;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
 using Dapper;
-using System.ComponentModel;
 
 namespace BookWeb.Repository.Repository
 {

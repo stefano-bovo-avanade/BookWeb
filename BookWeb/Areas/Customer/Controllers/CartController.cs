@@ -1,8 +1,5 @@
 ﻿using BookWeb.Models.ViewModels;
-using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service;
-using BookWeb.Utility.ShoppingCartHelper;
-using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookWeb.Areas.Customer.Controllers
@@ -10,46 +7,23 @@ namespace BookWeb.Areas.Customer.Controllers
     [Area("Customer")]
     public class CartController : BaseController
     {
-       //[BindProperty]
         private ShoppingCartVM shoppingCartVM { get; set; }
-        private readonly IShoppingCartRepository _shoppingCartRepository;
         private readonly IShoppingCartService _shoppingCartService;
-        private readonly IUserRepository _userRepository;
-        private readonly IOrderHeaderRepository _orderHeaderRepository;
-        private readonly IOrderDetailRepository _orderDetailRepository;
-        private readonly IMapper _mapper;
-        private readonly CartHelper _cartHelper;
-
-
-        public CartController(IShoppingCartRepository shoppingCartRepository, 
-            IUserRepository userRepository,
-            IOrderHeaderRepository orderHeaderRepository,
-            IOrderDetailRepository orderDetailRepository,
-            IMapper mapper,
-            IShoppingCartService shoppingCartService,
-            CartHelper cartHelper)
+        
+        public CartController(IShoppingCartService shoppingCartService)
         {
-            _shoppingCartRepository = shoppingCartRepository;
-            _userRepository = userRepository;
-            _orderHeaderRepository = orderHeaderRepository;
-            _orderDetailRepository = orderDetailRepository;
-            _mapper = mapper;
             _shoppingCartService = shoppingCartService;
-            _cartHelper = cartHelper;
         }
 
         public async Task<IActionResult> Index()
         {
-            var token = _cartHelper.GetCartToken();
             var cart = await _shoppingCartService.GetOrCreateCartAsync();
-
             return View(cart);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddToCart(int Id, int quantity)
         {
-            var token = _cartHelper.GetCartToken();
             await _shoppingCartService.AddToCartAsync(Id, quantity);
 
             return RedirectToAction(
@@ -215,11 +189,11 @@ namespace BookWeb.Areas.Customer.Controllers
         //    return RedirectToAction(nameof(Index));
         //}
 
-        public IActionResult Remove(int cartId)
-        {
-            _shoppingCartRepository.DeleteShoppingCart(cartId);
-            return RedirectToAction(nameof(Index));
-        }
+        //public IActionResult Remove(int cartId)
+        //{
+        //    _shoppingCartRepository.DeleteShoppingCart(cartId);
+        //    return RedirectToAction(nameof(Index));
+        //}
 
     }
 }

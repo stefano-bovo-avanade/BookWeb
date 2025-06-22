@@ -4,6 +4,7 @@ using BookWeb.Service;
 using BookWeb.Service.Context;
 using BookWeb.Utility;
 using BookWeb.Utility.Authentication;
+using BookWeb.Utility.ShoppingCartHelper;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -88,6 +89,9 @@ namespace BookWeb
 
             // 3. Registrazione dei servizi
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
+            builder.Services.AddScoped<CartHelper>();
+            builder.Services.AddHttpContextAccessor();
+
 
 
             var app = builder.Build();
