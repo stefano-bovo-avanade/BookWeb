@@ -1,6 +1,7 @@
 ﻿using BookWeb.Common.Authentication;
 using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
+using BookWeb.Service;
 using BookWeb.Service.Context;
 using BookWeb.Utility.Authentication;
 using MapsterMapper;
@@ -17,14 +18,16 @@ namespace BookWeb.Areas.Customer.Controllers
         private readonly AuthService _authService;
         private readonly IConfiguration _config;
         private readonly IMapper _mapper;
+        private readonly IShoppingCartService _shoppingCartService;
 
         public AccountController(AuthService authService, IConfiguration config, 
-            ApplicationDbContext context, IMapper mapper)
+            ApplicationDbContext context, IMapper mapper, IShoppingCartService shoppingCartService)
         {
             _authService = authService;
             _config = config;
             _context = context;
             _mapper = mapper;
+            _shoppingCartService = shoppingCartService;
         }
 
         [HttpGet]
@@ -106,6 +109,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
             if (user != null)
             {
+                // Genera JWT e salva nei cookie
                 var token = JwtManager.GenerateToken(user, _config);
 
                 Response.Cookies.Append("jwt", token, new CookieOptions
@@ -116,6 +120,18 @@ namespace BookWeb.Areas.Customer.Controllers
                     Expires = DateTimeOffset.UtcNow.AddHours(1)
                 });
 
+                // MERGE del carrello guest
+                var guestCartToken = Request.Cookies["cartToken"];
+
+                if (!string.IsNullOrEmpty(guestCartToken) && guestCartToken != user.Id)
+                {
+                    await _shoppingCartService.MergeGuestCartAsync(guestCartToken, user.Id);
+
+                    // Elimina il cookie del guest cart dopo il merge
+                    Response.Cookies.Delete("cartToken");
+                }
+
+                // Redirect
                 if (returnUrl != null)
                 {
                     return LocalRedirect(returnUrl);
@@ -129,6 +145,7 @@ namespace BookWeb.Areas.Customer.Controllers
             ViewBag.Error = "Credenziali errate";
             return View();
         }
+
 
         public IActionResult Logout()
         {

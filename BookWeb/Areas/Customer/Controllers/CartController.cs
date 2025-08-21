@@ -52,8 +52,13 @@ namespace BookWeb.Areas.Customer.Controllers
 
             // Recupera o crea il carrello per l'utente loggato
             var cart = await _shoppingCartService.GetOrCreateCartAsync();
+            CheckoutVM checkoutVM = new CheckoutVM()
+            {
+                Items = cart.Items,
+                OrderTotal = cart.CartTotal,
+            };
 
-            return View(cart);
+            return View(checkoutVM);
         }
 
 

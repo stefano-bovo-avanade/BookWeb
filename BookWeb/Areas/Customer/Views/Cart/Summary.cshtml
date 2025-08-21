@@ -1,4 +1,4 @@
-﻿@model ShoppingCartVM
+﻿@model CheckoutVM
 
 <form method="post">
 	<br />
@@ -31,8 +31,8 @@
 									<label>Name</label>
 								</div>
 								<div class="col-9">
-									<input asp-for="Order.Name" class="form-control" />
-									<span asp-validation-for="Order.Name" class="text-danger"></span>
+									<input asp-for="Name" class="form-control" />
+									<span asp-validation-for="Name" class="text-danger"></span>
 								</div>
 							</div>
 							<div class="row my-1">
@@ -40,8 +40,8 @@
 									<label>Phone</label>
 								</div>
 								<div class="col-9">
-									<input asp-for="Order.PhoneNumber" class="form-control" />
-									<span asp-validation-for="Order.PhoneNumber" class="text-danger"></span>
+									<input asp-for="PhoneNumber" class="form-control" />
+									<span asp-validation-for="PhoneNumber" class="text-danger"></span>
 								</div>
 							</div>
 							<div class="row my-1">
@@ -49,8 +49,8 @@
 									<label>Street Address</label>
 								</div>
 								<div class="col-9">
-									<input asp-for="Order.StreetAddress" class="form-control" />
-									<span asp-validation-for="Order.StreetAddress" class="text-danger"></span>
+									<input asp-for="StreetAddress" class="form-control" />
+									<span asp-validation-for="StreetAddress" class="text-danger"></span>
 								</div>
 							</div>
 							<div class="row my-1">
@@ -58,8 +58,8 @@
 									<label>City</label>
 								</div>
 								<div class="col-9">
-									<input asp-for="Order.City" class="form-control" />
-									<span asp-validation-for="Order.City" class="text-danger"></span>
+									<input asp-for="City" class="form-control" />
+									<span asp-validation-for="City" class="text-danger"></span>
 								</div>
 							</div>
 							<div class="row my-1">
@@ -67,8 +67,8 @@
 									<label>State</label>
 								</div>
 								<div class="col-9">
-									<input asp-for="Order.State" class="form-control" />
-									<span asp-validation-for="Order.State" class="text-danger"></span>
+									<input asp-for="State" class="form-control" />
+									<span asp-validation-for="State" class="text-danger"></span>
 								</div>
 							</div>
 							<div class="row my-1">
@@ -76,8 +76,8 @@
 									<label>Postal Code</label>
 								</div>
 								<div class="col-9">
-									<input asp-for="Order.PostalCode" class="form-control" />
-									<span asp-validation-for="Order.PostalCode" class="text-danger"></span>
+									<input asp-for="PostalCode" class="form-control" />
+									<span asp-validation-for="PostalCode" class="text-danger"></span>
 								</div>
 							</div>
 						</div>
@@ -100,7 +100,7 @@
 
 								<li class="list-group-item d-flex justify-content-between bg-light">
 									<small class="text-info">Total (USD)</small>
-									<strong class="text-info">@Model.Order.OrderTotal.ToString("c")</strong>
+									<strong class="text-info">@Model.OrderTotal.ToString("c")</strong>
 								</li>
 							</ul>
 						</div>

@@ -1,6 +1,7 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Utility.ShoppingCartHelper;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookWeb.Service
 {
@@ -24,8 +25,7 @@ namespace BookWeb.Service
         {
             var token = _cartHelper.GetCartToken();
             var isAuthenticated = _cartHelper.IsAuthenticated();
-
-            var cart = await _shoppingCartRepository.GetCartAsync(token, isAuthenticated);
+            var cart = await _cartHelper.GetCurrentCartAsync();
 
             if (cart == null)
             {
@@ -81,6 +81,54 @@ namespace BookWeb.Service
             }
         }
 
+
+        public async Task MergeGuestCartAsync(string guestCartToken, string userId)
+        {
+            if (string.IsNullOrEmpty(guestCartToken) || string.IsNullOrEmpty(userId))
+                return;
+
+            // Carrello guest (identificato da CartToken)
+            var guestCart = await _shoppingCartRepository.GetCartByCartTokenAsync(guestCartToken);
+            if (guestCart == null)
+                return;
+
+            // Carrello utente (identificato da UserId)
+            var userCart = await _shoppingCartRepository.GetCartByUserIdAsync(userId);
+
+            if (userCart == null)
+            {
+                // Se l'utente non ha un carrello, assegniamo quello del guest
+                guestCart.UserId = userId;
+                guestCart.CartToken = null;
+
+                await _shoppingCartRepository.SaveAsync();
+                return;
+            }
+
+            // Altrimenti fai il merge degli articoli
+            foreach (var guestItem in guestCart.Items)
+            {
+                var existingItem = userCart.Items.FirstOrDefault(i => i.ProductId == guestItem.ProductId);
+                if (existingItem != null)
+                {
+                    existingItem.Count += guestItem.Count;
+                }
+                else
+                {
+                    userCart.Items.Add(new ShoppingCartItem
+                    {
+                        ProductId = guestItem.ProductId,
+                        Count = guestItem.Count
+                    });
+                }
+            }
+
+            // Elimina il carrello guest
+            await _shoppingCartRepository.RemoveShoppingCart(guestCart);
+            await _shoppingCartRepository.SaveAsync();
+        }
+
+
         private int UpdatePriceBasedOnQuantity(ShoppingCartItem shoppingCartItem)
         { 
             return shoppingCartItem.Count switch
@@ -110,6 +158,8 @@ namespace BookWeb.Service
             if (shoppinCartItem!.Count == 1)
             {
                 await _shoppingCartRepository.RemoveShoppingCartItem(shoppinCartItem);
+                UpdateCartTotal(cartFromDb);
+                await SaveChangesAsync();
             }
             else
             {
