@@ -12,6 +12,10 @@
     <EmbeddedResource Remove="Areas\Identity\**" />
     <None Remove="Areas\Identity\**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Areas\Admin\Controllers\OrderHeaderController.cs" />
+  </ItemGroup>
 	<ItemGroup>
 	<PackageReference Include="ClosedXML" Version="0.105.0" />
 	<PackageReference Include="Mapster" Version="7.4.0" />

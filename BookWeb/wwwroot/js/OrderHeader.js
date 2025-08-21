@@ -11,7 +11,7 @@ function loadDataTable() {
         paging: true,
         ajax:
         {
-            url: '/admin/OrderHeader/GetAll',
+            url: '/admin/Order/GetAll',
             dataSrc: 'data'
         },
         columns: [

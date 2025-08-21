@@ -1,6 +1,5 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Repository.Repository.IRepository;
-using BookWeb.Service.Context;
 using BookWeb.Utility.ShoppingCartHelper;
 
 namespace BookWeb.Service
@@ -9,13 +8,16 @@ namespace BookWeb.Service
     {
         private readonly IShoppingCartRepository _shoppingCartRepository;
         private readonly CartHelper _cartHelper;
+        private readonly IProductRepository _productRepository;
 
         public ShoppingCartService(IShoppingCartRepository shoppingCartRepository
-            , CartHelper cartHelper)
+            , CartHelper cartHelper
+            , IProductRepository productRepository)
         {
          
             _shoppingCartRepository = shoppingCartRepository;
             _cartHelper = cartHelper;
+            _productRepository = productRepository;
         }
 
         public async Task<ShoppingCart> GetOrCreateCartAsync()
@@ -34,12 +36,19 @@ namespace BookWeb.Service
                 };
 
                 await _shoppingCartRepository.AddCartAsync(cart);
-                
+            }
+            else if (isAuthenticated && string.IsNullOrEmpty(cart.UserId))
+            {
+                // L'utente ha fatto login e il carrello è anonimo → lo convertiamo
+                cart.UserId = token;
+                cart.CartToken = null;
+
+                await _shoppingCartRepository.UpdateCartAsync(cart);
             }
 
             return cart;
-
         }
+
 
         public async Task AddToCartAsync(int productId, int quantity)
         {
@@ -49,23 +58,31 @@ namespace BookWeb.Service
             if (item != null)
             {
                 item.Count += quantity;
+                item.Price = UpdatePriceBasedOnQuantity(item);
             }
             else
             {
-                cart.Items.Add(new ShoppingCartItem { ProductId = productId, Count = quantity});
-                
+                item = new ShoppingCartItem { ProductId = productId, Count = quantity };
+                item.Product = await _productRepository.GetProduct(productId);
+                item.Price = UpdatePriceBasedOnQuantity(item);
+                cart.Items.Add(item);
             }
 
-            item!.Price = UpdatePriceBasedOnQuantity(item);
-            foreach (ShoppingCartItem i in cart.Items)
-            {
-                cart.CartTotal += i.Price;
-            }
+            UpdateCartTotal(cart);
             await _shoppingCartRepository.SaveAsync();
         }
 
-        private int UpdatePriceBasedOnQuantity(ShoppingCartItem shoppingCartItem)
+        private void UpdateCartTotal(ShoppingCart shoppingCart)
         {
+            shoppingCart.CartTotal = 0;
+            foreach (ShoppingCartItem i in shoppingCart.Items)
+            {
+                shoppingCart.CartTotal += i.Price;
+            }
+        }
+
+        private int UpdatePriceBasedOnQuantity(ShoppingCartItem shoppingCartItem)
+        { 
             return shoppingCartItem.Count switch
             {
                 >= 1 and <= 50 => (int)shoppingCartItem.Product.Price * shoppingCartItem.Count,
@@ -73,6 +90,49 @@ namespace BookWeb.Service
                 > 100 => (int)shoppingCartItem.Product.Price100 * shoppingCartItem.Count,
                 _ => throw new ArgumentException("Valore non valido"),
             };
+        }
+
+        public async Task Plus(int productId)
+        {
+            var cartFromDb = await GetOrCreateCartAsync();
+            var shoppinCartItem = cartFromDb.Items.Where(s => s.Id == productId).FirstOrDefault();
+            shoppinCartItem!.Count += 1;
+            shoppinCartItem.Price = UpdatePriceBasedOnQuantity(shoppinCartItem);
+            UpdateCartTotal(cartFromDb);
+            await SaveChangesAsync();
+        }
+
+        public async Task Minus(int productId)
+        {
+            var cartFromDb = await GetOrCreateCartAsync();
+            var shoppinCartItem = cartFromDb.Items.Where(s => s.Id == productId).FirstOrDefault();
+
+            if (shoppinCartItem!.Count == 1)
+            {
+                await _shoppingCartRepository.RemoveShoppingCartItem(shoppinCartItem);
+            }
+            else
+            {
+                shoppinCartItem.Count -= 1;
+                shoppinCartItem.Price = UpdatePriceBasedOnQuantity(shoppinCartItem);
+                UpdateCartTotal(cartFromDb);
+                await SaveChangesAsync();
+            }
+            
+        }
+
+        public async Task Remove(int productId)
+        {
+            var cartFromDb = await GetOrCreateCartAsync();
+            var shoppinCartItem = cartFromDb.Items.Where(s => s.Id == productId).FirstOrDefault();
+            await _shoppingCartRepository.RemoveShoppingCartItem(shoppinCartItem);
+            UpdateCartTotal(cartFromDb);
+            await SaveChangesAsync();
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _shoppingCartRepository.SaveAsync();
         }
     }
 }

@@ -6,15 +6,15 @@ namespace BookWeb.Areas.Admin.Controllers
     [Area("Admin")]
     public class OrderHeaderController : BaseController
     {
-        private readonly IOrderHeaderRepository _orderHeaderRepository;
-        public OrderHeaderController(IOrderHeaderRepository orderHeaderRepository) 
+        private readonly IOrderHeaderRepository _orderRepository;
+        public OrderHeaderController(IOrderHeaderRepository orderRepository) 
         {
-            _orderHeaderRepository = orderHeaderRepository;
+            _orderRepository = orderRepository;
         }
         public IActionResult Index()
         {
-            var orderHeaders = _orderHeaderRepository.GetOrderHeaders().Result.ToList();
-            return View(orderHeaders);
+            var orders = _orderRepository.GetOrderHeaders().Result.ToList();
+            return View(orders);
         }
 
         #region API CALLS
@@ -22,10 +22,10 @@ namespace BookWeb.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var orderHeaders = _orderHeaderRepository.GetOrderHeaders().Result;
+            var orders = _orderRepository.GetOrderHeaders().Result;
             return Json(new
             {
-                data = orderHeaders,
+                data = orders,
             });
         }
 

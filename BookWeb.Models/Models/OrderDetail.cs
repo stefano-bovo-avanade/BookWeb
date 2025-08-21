@@ -8,10 +8,10 @@ namespace BookWeb.Models.Models
     {
         public int Id { get; set; }
         [Required]
-        public int OrderHeaderId { get; set; }
-        [ForeignKey("OrderHeaderId")]
+        public int OrderId { get; set; }
+        [ForeignKey("OrderId")]
         [ValidateNever]
-        public OrderHeader OrderHeader { get; set; }
+        public Order Order { get; set; }
 
         [Required]
         public int ProductId { get; set; }

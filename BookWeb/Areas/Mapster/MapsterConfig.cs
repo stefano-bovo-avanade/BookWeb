@@ -7,7 +7,7 @@ namespace BookWeb.Areas.Mapster
     {
         public static void RegisterMappings()
         {
-            TypeAdapterConfig<User, OrderHeader>
+            TypeAdapterConfig<User, Order>
                 .NewConfig()
                 .Map(dest => dest.UserId, src => src.Id)
                 .Map(dest => dest.PhoneNumber, src => src.PhoneNumber)

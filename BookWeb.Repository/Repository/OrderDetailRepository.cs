@@ -17,8 +17,8 @@ namespace BookWeb.Repository.Repository
         {
             var query = $"SELECT " +
                 $"Id, " +
-                $"OrderHeaderId, " +
-                $"OrderHeader, " +
+                $"OrderId, " +
+                $"Order, " +
                 $"ProductId, " +
                 $"Product, " +
                 $"Count, " +
@@ -36,8 +36,8 @@ namespace BookWeb.Repository.Repository
         {
             var query = $"SELECT " +
                 $"Id, " +
-                $"OrderHeaderId, " +
-                $"OrderHeader, " +
+                $"OrderId, " +
+                $"Order, " +
                 $"ProductId, " +
                 $"Product, " +
                 $"Count, " +
@@ -51,16 +51,16 @@ namespace BookWeb.Repository.Repository
             }
         }
 
-        public async Task<IEnumerable<OrderDetail>> GetOrderDetailsPerOrderHeaderId(int Id)
+        public async Task<IEnumerable<OrderDetail>> GetOrderDetailsPerOrderId(int Id)
         {
             var query = $"SELECT " +
                 $"Id, " +
-                $"OrderHeaderId, " +
+                $"OrderId, " +
                 $"ProductId, " +
                 $"Count, " +
                 $"Price " +
                 $"FROM OrderDetails " +
-                $"where OrderHeaderId = @Id; " +
+                $"where OrderId = @Id; " +
                 $"SELECT * FROM Products";
 
             using (var connection = _context.CreateConnection())
@@ -87,12 +87,12 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 var sql = $"INSERT INTO OrderDetails " +
-                    $"(OrderHeaderId, " +
+                    $"(OrderId, " +
                     $"ProductId, " +
                     $"Count, " +
                     $"Price) " +
                     $"VALUES " +
-                    $"(@OrderHeaderId, " +
+                    $"(@OrderId, " +
                     $"@ProductId, " +
                     $"@Count, " +
                     $"@Price); " +
@@ -101,7 +101,7 @@ namespace BookWeb.Repository.Repository
                 var result = await connection.QueryAsync<int>(sql,
                     new 
                     { 
-                        OrderHeaderId = OrderDetail.OrderHeaderId,
+                        OrderId = OrderDetail.OrderId,
                         ProductId = OrderDetail.ProductId,
                         Count = OrderDetail.Count,
                         Price = OrderDetail.Price,
@@ -117,8 +117,8 @@ namespace BookWeb.Repository.Repository
             using (var connection = _context.CreateConnection())
             {
                 var sql = $"UPDATE OrderDetails SET " +
-                    $"OrderHeaderId = @OrderHeaderId, " +
-                    $"OrderHeader = @OrderHeader, " +
+                    $"OrderId = @OrderId, " +
+                    $"Order = @Order, " +
                     $"ProductId = @ProductId, " +
                     $"Product = @Product, " +
                     $"Count = @Count, " +
@@ -128,8 +128,8 @@ namespace BookWeb.Repository.Repository
                 var result = await connection.QueryAsync<int>(sql,
                     new 
                     {
-                        OrderHeaderId = OrderDetail.OrderHeaderId,
-                        OrderHeader = OrderDetail.OrderHeader,
+                        OrderId = OrderDetail.OrderId,
+                        Order = OrderDetail.Order,
                         ProductId = OrderDetail.ProductId,
                         Product = OrderDetail.Product,
                         Count = OrderDetail.Count,

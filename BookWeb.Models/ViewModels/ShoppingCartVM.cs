@@ -6,6 +6,6 @@ namespace BookWeb.Models.ViewModels
     {
         public IEnumerable<ShoppingCart> ShoppingCartList { get; set; }
 
-        public OrderHeader OrderHeader { get; set; }
+        public Order Order { get; set; }
     }
 }

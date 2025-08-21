@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookWeb.Models.Models
 {
-    public class OrderHeader
+    public class Order
     {
         public int Id { get; set; }
 

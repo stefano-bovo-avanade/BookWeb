@@ -79,7 +79,7 @@ namespace BookWeb
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
             builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
-            builder.Services.AddScoped<IOrderHeaderRepository, OrderHeaderRepository>();
+            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<AuthService>();
@@ -91,8 +91,6 @@ namespace BookWeb
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
             builder.Services.AddScoped<CartHelper>();
             builder.Services.AddHttpContextAccessor();
-
-
 
             var app = builder.Build();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

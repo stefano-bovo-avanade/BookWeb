@@ -8,7 +8,7 @@ namespace BookWeb.Repository.Repository.IRepository
 
         public Task<IEnumerable<OrderDetail>> GetOrderDetails();
 
-        public Task<IEnumerable<OrderDetail>> GetOrderDetailsPerOrderHeaderId(int Id);
+        public Task<IEnumerable<OrderDetail>> GetOrderDetailsPerOrderId(int Id);
 
         public Task<int> InsertOrderDetail(OrderDetail OrderDetail);
 

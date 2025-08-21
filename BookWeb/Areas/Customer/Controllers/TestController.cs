@@ -1,5 +1,6 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Repository.Repository.IRepository;
+using BookWeb.Service.Context;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -10,11 +11,14 @@ namespace BookWeb.Areas.Customer.Controllers
     {
         private readonly ICategoryRepository _categoryRepository;
         private readonly IProductRepository _productRepository;
+        private readonly ApplicationDbContext _context;
 
-        public TestController(IProductRepository productRepository, ICategoryRepository categoryRepository)
+        public TestController(IProductRepository productRepository, ICategoryRepository categoryRepository,
+            ApplicationDbContext context)
         {
             _categoryRepository = categoryRepository;
             _productRepository = productRepository;
+            _context = context;
         }
 
         public IActionResult Index()
@@ -35,5 +39,21 @@ namespace BookWeb.Areas.Customer.Controllers
             var productsByCategoryId = products.Where(p => p.CategoryId == categoryId).ToList();
             return Json(productsByCategoryId);
         }
+
+        public async Task<JsonResult> TestApi()
+        {
+            DateTime start = new DateTime(2025, 06, 01);
+            DateTime end = new DateTime(2025, 06, 11);
+
+            return Json(new
+            {
+                
+            });
+        }
+    }
+    class PetOwner
+    {
+        public string Name { get; set; }
+        public List<string> Pets { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using BookWeb.Models.ViewModels;
 using BookWeb.Service;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BookWeb.Areas.Customer.Controllers
 {
@@ -35,13 +36,26 @@ namespace BookWeb.Areas.Customer.Controllers
         }
 
 
-        //public async Task<IActionResult> Summary()
-        //{
-        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    var cart = _shoppingCartService.GetShoppingCart();
-            
-        //    return View(shoppingCartVM);
-        //}
+        public async Task<IActionResult> Summary()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                // Reindirizza al login con returnUrl per tornare al summary dopo l'autenticazione
+                return RedirectToAction(
+                actionName: "Login",
+                controllerName: "Account",
+                routeValues: new { area = "Customer", returnUrl = Url.Action("Summary", "Cart") });
+
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Recupera o crea il carrello per l'utente loggato
+            var cart = await _shoppingCartService.GetOrCreateCartAsync();
+
+            return View(cart);
+        }
+
 
         //[HttpPost]
         //[ActionName("Summary")]
@@ -50,41 +64,41 @@ namespace BookWeb.Areas.Customer.Controllers
         //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         //    shoppingCartVM.ShoppingCartList = _shoppingCartRepository.GetShoppingCartsPerUserId(userId).Result;
-        //    shoppingCartVM.OrderHeader.User = _userRepository.GetUser(userId).Result;
-        //    shoppingCartVM.OrderHeader.OrderDate = System.DateTime.Now;
-        //    shoppingCartVM.OrderHeader.ShippingDate = System.DateTime.Now.AddDays(7);
-        //    shoppingCartVM.OrderHeader.UserId = userId;
+        //    shoppingCartVM.Order.User = _userRepository.GetUser(userId).Result;
+        //    shoppingCartVM.Order.OrderDate = System.DateTime.Now;
+        //    shoppingCartVM.Order.ShippingDate = System.DateTime.Now.AddDays(7);
+        //    shoppingCartVM.Order.UserId = userId;
 
         //    foreach (var cart in shoppingCartVM.ShoppingCartList)
         //    {
         //        cart.Price = GetPriceBasedOnQuantity(cart);
-        //        shoppingCartVM.OrderHeader.OrderTotal += cart.Price;
+        //        shoppingCartVM.Order.OrderTotal += cart.Price;
         //    }
 
-        //    if (shoppingCartVM.OrderHeader.User.CompanyId.GetValueOrDefault() == 0)
+        //    if (shoppingCartVM.Order.User.CompanyId.GetValueOrDefault() == 0)
         //    {
         //        // è un cliente regolare e dobbiamo verificare il pagamento
-        //        shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
-        //        shoppingCartVM.OrderHeader.OrderStatus = SD.StatusPending;
+        //        shoppingCartVM.Order.PaymentStatus = SD.PaymentStatusPending;
+        //        shoppingCartVM.Order.OrderStatus = SD.StatusPending;
         //    }
         //    else
         //    {
         //        // utente company
-        //        shoppingCartVM.OrderHeader.PaymentStatus = SD.PaymentStatusDelayedPayment;
-        //        shoppingCartVM.OrderHeader.OrderStatus = SD.StatusApproved;
+        //        shoppingCartVM.Order.PaymentStatus = SD.PaymentStatusDelayedPayment;
+        //        shoppingCartVM.Order.OrderStatus = SD.StatusApproved;
 
         //    }
 
-        //    var orderInsertedId = _orderHeaderRepository.InsertOrderHeader(shoppingCartVM.OrderHeader).Result;
-        //    var OrderHeaderInserted = _orderHeaderRepository.GetOrderHeader(orderInsertedId).Result;
-        //    OrderHeaderInserted.User = _userRepository.GetUser(OrderHeaderInserted.UserId).Result;
+        //    var orderInsertedId = _orderRepository.InsertOrder(shoppingCartVM.Order).Result;
+        //    var OrderInserted = _orderRepository.GetOrder(orderInsertedId).Result;
+        //    OrderInserted.User = _userRepository.GetUser(OrderInserted.UserId).Result;
 
         //    foreach (var cart in shoppingCartVM.ShoppingCartList)
         //    {
         //        OrderDetail orderDetail = new OrderDetail()
         //        {
         //            ProductId = cart.ProductId,
-        //            OrderHeaderId = OrderHeaderInserted.Id,
+        //            OrderId = OrderInserted.Id,
         //            Count = cart.Count,
         //            Price = cart.Price,
         //        };
@@ -93,7 +107,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
         //    #region
 
-        //    if (OrderHeaderInserted.User.CompanyId.GetValueOrDefault() == 0)
+        //    if (OrderInserted.User.CompanyId.GetValueOrDefault() == 0)
         //    {
         //        // è un cliente regolare e dobbiamo verificare il pagamento
         //        StripeConfiguration.ApiKey = "sk_test_51R7aotGdXWKcYFAs2sZ5ESMHEs5J4HBCI7WtgSbhpIE3MoCMlOg6oXS0h0kSjRmehAF8e3afnsbKEp5y3kbIWGfi00i9yZmmBx";
@@ -127,37 +141,37 @@ namespace BookWeb.Areas.Customer.Controllers
         //        }
         //        var service = new Stripe.Checkout.SessionService();
         //        Session session = service.Create(options);
-        //        _orderHeaderRepository.UpdateStripePaymentID(orderInsertedId, session.Id, session.PaymentIntentId);
+        //        _orderRepository.UpdateStripePaymentID(orderInsertedId, session.Id, session.PaymentIntentId);
         //        Response.Headers.Append("Location", session.Url);
         //        return new StatusCodeResult(303);
 
         //    }
         //    #endregion
 
-        //    return RedirectToAction(nameof(OrderConfirmation), new { id = OrderHeaderInserted.Id});
+        //    return RedirectToAction(nameof(OrderConfirmation), new { id = OrderInserted.Id});
         //}
 
         //public IActionResult OrderConfirmation(int id)
         //{
-        //    OrderHeader orderHeader = _orderHeaderRepository.GetOrderHeader(id).Result;
+        //    Order order = _orderRepository.GetOrder(id).Result;
 
         //    #region
 
-        //    if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
+        //    if (order.PaymentStatus != SD.PaymentStatusDelayedPayment)
         //    {
         //        var service = new SessionService();
-        //        Session session = service.Get(orderHeader.SessionId);
+        //        Session session = service.Get(order.SessionId);
 
         //        if (session.PaymentStatus.ToLower() == "paid")
         //        {
-        //            _orderHeaderRepository.UpdateStripePaymentID(id, session.Id, session.PaymentIntentId);
-        //            _orderHeaderRepository.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
+        //            _orderRepository.UpdateStripePaymentID(id, session.Id, session.PaymentIntentId);
+        //            _orderRepository.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
         //        }
         //    }
 
         //    #endregion
 
-        //    List<ShoppingCart> shoppingCarts = _shoppingCartRepository.GetShoppingCartsPerUserId(orderHeader.UserId).Result.ToList();
+        //    List<ShoppingCart> shoppingCarts = _shoppingCartRepository.GetShoppingCartsPerUserId(order.UserId).Result.ToList();
         //    foreach (var cart in shoppingCarts)
         //    {
         //        _shoppingCartRepository.DeleteShoppingCart(cart.Id);
@@ -166,34 +180,23 @@ namespace BookWeb.Areas.Customer.Controllers
         //    return View(id);
         //}
 
-        //public IActionResult Plus(int cartId) 
-        //{
-        //    var cartFromDb = _shoppingCartRepository.GetShoppingCart(cartId).Result;
-        //    cartFromDb.Count += 1;
-        //    _shoppingCartRepository.UpdateShoppingCart(cartFromDb);
-        //    return RedirectToAction(nameof(Index));
-        //}
+        public async Task<IActionResult> Plus(int productId)
+        {
+            await _shoppingCartService.Plus(productId);
+            return RedirectToAction(nameof(Index));
+        }
 
-        //public IActionResult Minus(int cartId)
-        //{
-        //    var cartFromDb = _shoppingCartRepository.GetShoppingCart(cartId).Result;
-        //    if (cartFromDb.Count == 1)
-        //    {
-        //        _shoppingCartRepository.DeleteShoppingCart(cartId);
-        //    }
-        //    else
-        //    {
-        //        cartFromDb.Count -= 1;
-        //        _shoppingCartRepository.UpdateShoppingCart(cartFromDb);
-        //    }
-        //    return RedirectToAction(nameof(Index));
-        //}
+        public async Task<IActionResult> Minus(int productId)
+        {
+            await _shoppingCartService.Minus(productId);
+            return RedirectToAction(nameof(Index));
+        }
 
-        //public IActionResult Remove(int cartId)
-        //{
-        //    _shoppingCartRepository.DeleteShoppingCart(cartId);
-        //    return RedirectToAction(nameof(Index));
-        //}
+        public async Task<IActionResult> Remove(int productId)
+        {
+            await _shoppingCartService.Remove(productId);
+            return RedirectToAction(nameof(Index));
+        }
 
     }
 }

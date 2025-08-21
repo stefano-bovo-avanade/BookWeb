@@ -9,18 +9,18 @@ using System.Security.Claims;
 namespace BookWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    //[Authorize]
     public class OrderController : BaseController
     {
-        private readonly IOrderHeaderRepository _orderHeaderRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly IOrderDetailRepository _orderDetailRepository;
         [BindProperty]
         public OrderVM OrderVM { get; set; }
 
-        public OrderController(IOrderHeaderRepository orderHeaderRepository, 
+        public OrderController(IOrderRepository orderRepository, 
             IOrderDetailRepository orderDetailRepository)
         {
-            _orderHeaderRepository = orderHeaderRepository;
+            _orderRepository = orderRepository;
             _orderDetailRepository = orderDetailRepository;
         }
 
@@ -35,8 +35,8 @@ namespace BookWeb.Areas.Admin.Controllers
         {
             this.OrderVM = new OrderVM
             {
-                OrderHeader = _orderHeaderRepository.GetOrderHeader(orderId).Result,
-                OrderDetailList = _orderDetailRepository.GetOrderDetailsPerOrderHeaderId(orderId).Result,
+                Order = _orderRepository.GetOrder(orderId).Result,
+                OrderDetailList = _orderDetailRepository.GetOrderDetailsPerOrderId(orderId).Result,
             };
 
             return View(OrderVM);
@@ -46,25 +46,25 @@ namespace BookWeb.Areas.Admin.Controllers
         [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
         public IActionResult UpdateOrderDetail()
         {
-            var orderHeaderFromDb = _orderHeaderRepository.GetOrderHeader(OrderVM.OrderHeader.Id).Result;
-            orderHeaderFromDb.Name = OrderVM.OrderHeader.Name;
-            orderHeaderFromDb.PhoneNumber = OrderVM.OrderHeader.PhoneNumber;
-            orderHeaderFromDb.StreetAddress = OrderVM.OrderHeader.StreetAddress;
-            orderHeaderFromDb.City = OrderVM.OrderHeader.City;
-            orderHeaderFromDb.State = OrderVM.OrderHeader.State;
-            orderHeaderFromDb.PostalCode = OrderVM.OrderHeader.PostalCode;
-            if (!string.IsNullOrEmpty(orderHeaderFromDb.Carrier))
+            var orderFromDb = _orderRepository.GetOrder(OrderVM.Order.Id).Result;
+            orderFromDb.Name = OrderVM.Order.Name;
+            orderFromDb.PhoneNumber = OrderVM.Order.PhoneNumber;
+            orderFromDb.StreetAddress = OrderVM.Order.StreetAddress;
+            orderFromDb.City = OrderVM.Order.City;
+            orderFromDb.State = OrderVM.Order.State;
+            orderFromDb.PostalCode = OrderVM.Order.PostalCode;
+            if (!string.IsNullOrEmpty(orderFromDb.Carrier))
             {
-                orderHeaderFromDb.Carrier = orderHeaderFromDb.Carrier;
+                orderFromDb.Carrier = orderFromDb.Carrier;
             }
-            if (!string.IsNullOrEmpty(orderHeaderFromDb.TrackingNumber))
+            if (!string.IsNullOrEmpty(orderFromDb.TrackingNumber))
             {
-                orderHeaderFromDb.Carrier = orderHeaderFromDb.TrackingNumber;
+                orderFromDb.Carrier = orderFromDb.TrackingNumber;
             }
 
-            _orderHeaderRepository.UpdateOrderHeader(orderHeaderFromDb);
+            _orderRepository.UpdateOrder(orderFromDb);
             TempData["Success"] = "Dettagli ordini aggiornati con successo";
-            return RedirectToAction(nameof(Details), new { orderId = orderHeaderFromDb.Id });
+            return RedirectToAction(nameof(Details), new { orderId = orderFromDb.Id });
         }
 
         #region API CALLS
@@ -72,37 +72,37 @@ namespace BookWeb.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult GetAll(string status)
         {
-            IEnumerable<OrderHeader> orderHeaders;
+            IEnumerable<Order> orders;
             if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
             {
-                orderHeaders = _orderHeaderRepository.GetOrderHeaders().Result;
+                orders = _orderRepository.GetOrders().Result;
             }
             else 
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                orderHeaders = _orderHeaderRepository.GetOrderHeaderPerUserId(userId).Result;
+                orders = _orderRepository.GetOrderPerUserId(userId).Result;
             }
 
             switch (status)
             {
                 case "inprocess":
-                    orderHeaders = orderHeaders.Where(u => u.OrderStatus == SD.StatusInProcess);
+                    orders = orders.Where(u => u.OrderStatus == SD.StatusInProcess);
                     break;
                 case "pending":
-                    orderHeaders = orderHeaders.Where(u => u.PaymentStatus == SD.PaymentStatusDelayedPayment);
+                    orders = orders.Where(u => u.PaymentStatus == SD.PaymentStatusDelayedPayment);
                     break;
                 case "completed":
-                    orderHeaders = orderHeaders.Where(u => u.PaymentStatus == SD.StatusShipped);
+                    orders = orders.Where(u => u.PaymentStatus == SD.StatusShipped);
                     break;
                 case "approved":
-                    orderHeaders = orderHeaders.Where(u => u.OrderStatus == SD.StatusApproved);
+                    orders = orders.Where(u => u.OrderStatus == SD.StatusApproved);
                     break;
                 default:
                     break;
             }
             return Json(new
             {
-                data = orderHeaders,
+                data = orders,
             });
         }
 

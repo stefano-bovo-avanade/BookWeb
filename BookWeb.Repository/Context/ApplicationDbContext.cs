@@ -1,6 +1,5 @@
 ﻿using BookWeb.Models.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace BookWeb.Service.Context
 {
@@ -12,7 +11,7 @@ namespace BookWeb.Service.Context
 
         public DbSet<User> Users { get; set; }
         public DbSet<Company> Companies { get; set; }
-        public DbSet<OrderHeader> OrderHeaders { get; set; }
+        public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Product> Products { get; set; }

@@ -100,7 +100,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(InputUser utente)
+        public async Task<IActionResult> Login(InputUser utente, string returnUrl = null)
         {
             var user = await _authService.Authenticate(utente.UserName, utente.Password);
 
@@ -116,7 +116,14 @@ namespace BookWeb.Areas.Customer.Controllers
                     Expires = DateTimeOffset.UtcNow.AddHours(1)
                 });
 
-                return RedirectToAction("Index", "Home");
+                if (returnUrl != null)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
             ViewBag.Error = "Credenziali errate";

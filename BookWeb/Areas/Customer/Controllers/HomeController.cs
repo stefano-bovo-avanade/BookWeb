@@ -1,5 +1,4 @@
 using BookWeb.Models;
-using BookWeb.Models.Models;
 using BookWeb.Repository.Repository.IRepository;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -28,16 +27,16 @@ namespace BookWeb.Areas.Customer.Controllers
 
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            IEnumerable<VProduct> productList = _productRepository.GetProducts().Result.ToList();
-            ViewBag.Username = User!.Identity!.Name;
+            var productList = await _productRepository.GetProducts();
+            ViewBag.Username = User?.Identity?.Name ?? "Guest";
             return View(productList);
         }
 
-        public IActionResult ProductDetail(int productId)
+        public async Task<IActionResult> ProductDetail(int productId)
         {
-            Product product = _productRepository.GetProduct(productId).Result;
+            var product = await _productRepository.GetProduct(productId);
 
             if (product == null)
             {

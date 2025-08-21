@@ -128,10 +128,10 @@ namespace BookWeb.Areas.Admin.Controllers
                 });
             }
 
-            // OrderHeaders
-            foreach (var row in workbook.Worksheet("OrderHeaders").RangeUsed().RowsUsed().Skip(1))
+            // Orders
+            foreach (var row in workbook.Worksheet("Orders").RangeUsed().RowsUsed().Skip(1))
             {
-                _context.OrderHeaders.Add(new OrderHeader
+                _context.Orders.Add(new Order
                 {
                     Id = int.Parse(row.Cell(1).GetString()),
                     UserId = row.Cell(2).GetString(),
@@ -161,7 +161,7 @@ namespace BookWeb.Areas.Admin.Controllers
                 _context.OrderDetails.Add(new OrderDetail
                 {
                     Id = int.Parse(row.Cell(1).GetString()),
-                    OrderHeaderId = int.Parse(row.Cell(2).GetString()),
+                    OrderId = int.Parse(row.Cell(2).GetString()),
                     ProductId = int.Parse(row.Cell(3).GetString()),
                     Count = int.Parse(row.Cell(4).GetString()),
                     Price = double.Parse(row.Cell(5).GetString())
