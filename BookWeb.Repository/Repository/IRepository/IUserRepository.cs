@@ -4,7 +4,7 @@ namespace BookWeb.Repository.Repository.IRepository
 {
     public interface IUserRepository
     {
-        public Task<User> GetUser(string? Id);
+        public Task<User> GetUserAsync(string? Id);
 
         public Task<IEnumerable<User>> GetUsers();
 

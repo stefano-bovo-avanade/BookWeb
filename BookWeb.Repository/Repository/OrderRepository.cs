@@ -23,19 +23,19 @@ namespace BookWeb.Repository.Repository
             _applicationDbContext = applicationDbContext;
         }
 
-        public async Task<Order> GetOrder(int? Id)
+        public async Task<Order> GetOrderAsync(int? Id)
         {
             var order = _applicationDbContext.Orders.Include(o => o.User).Where(o => o.Id == Id).FirstOrDefault();
             return order;
         }
 
-        public async Task<IEnumerable<Order>> GetOrders()
+        public async Task<IEnumerable<Order>> GetOrdersAsync()
         {
             var orders = _applicationDbContext.Orders.Include(o => o.User);
             return orders;
         }
 
-        public async Task<IEnumerable<Order>> GetOrderPerUserId(string UserId)
+        public async Task<IEnumerable<Order>> GetOrderPerUserIdAsync(string UserId)
         {
             string query = $"SELECT" +
                 $"[Id]," +
@@ -164,41 +164,6 @@ namespace BookWeb.Repository.Repository
             }
 
 
-        }
-
-        public void UpdateStatus(int id, string orderStatus, string? paymentStatus = null)
-        {
-            Order header = GetOrder(id).Result;
-            
-            if (header != null)
-            {
-                header.OrderStatus = orderStatus;
-                if (!string.IsNullOrEmpty(paymentStatus))
-                {
-                    header.PaymentStatus = paymentStatus;
-                }
-                var result = UpdateOrder(header);
-            }
-        }
-
-        public void UpdateStripePaymentID(int id, string sessionId, string paymentIntentId)
-        {
-            Order header = GetOrder(id).Result;
-
-            if (header != null)
-            {
-                if (!string.IsNullOrEmpty(sessionId))
-                {
-                    header.SessionId = sessionId;
-                }
-
-                if (!string.IsNullOrEmpty(paymentIntentId))
-                {
-                    header.PaymentIntentId = paymentIntentId;
-                    header.PaymentDate = DateTime.Now;
-                }
-                var result = UpdateOrder(header);
-            }
         }
 
         public async Task<int> DeleteOrder(int? id)

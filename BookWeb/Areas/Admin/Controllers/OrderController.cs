@@ -1,9 +1,10 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
-using BookWeb.Repository.Repository.IRepository;
+using BookWeb.Service.Service.IService;
 using BookWeb.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using System.Security.Claims;
 
 namespace BookWeb.Areas.Admin.Controllers
@@ -12,31 +13,32 @@ namespace BookWeb.Areas.Admin.Controllers
     //[Authorize]
     public class OrderController : BaseController
     {
-        private readonly IOrderRepository _orderRepository;
-        private readonly IOrderDetailRepository _orderDetailRepository;
+        private readonly IOrderService _orderService;
+        private readonly IOrderDetailService _orderDetailService;
+
         [BindProperty]
         public OrderVM OrderVM { get; set; }
 
-        public OrderController(IOrderRepository orderRepository, 
-            IOrderDetailRepository orderDetailRepository)
+        public OrderController(IOrderService orderService, 
+            IOrderDetailService orderDetailService)
         {
-            _orderRepository = orderRepository;
-            _orderDetailRepository = orderDetailRepository;
+            _orderService = orderService;
+            _orderDetailService = orderDetailService;
         }
 
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             return View();
         }
 
         [HttpGet]
-        public IActionResult Details(int orderId)
+        public async Task<IActionResult> Details(int orderId)
         {
             this.OrderVM = new OrderVM
             {
-                Order = _orderRepository.GetOrder(orderId).Result,
-                OrderDetailList = _orderDetailRepository.GetOrderDetailsPerOrderId(orderId).Result,
+                Order = await _orderService.GetOrderAsync(orderId),
+                OrderDetailList = await _orderDetailService.GetOrderDetailsPerOrderId(orderId),
             };
 
             return View(OrderVM);
@@ -44,9 +46,9 @@ namespace BookWeb.Areas.Admin.Controllers
 
         [HttpPost]
         [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
-        public IActionResult UpdateOrderDetail()
+        public async Task<IActionResult> UpdateOrderDetail()
         {
-            var orderFromDb = _orderRepository.GetOrder(OrderVM.Order.Id).Result;
+            var orderFromDb = _orderService.GetOrderAsync(OrderVM.Order.Id).Result;
             orderFromDb.Name = OrderVM.Order.Name;
             orderFromDb.PhoneNumber = OrderVM.Order.PhoneNumber;
             orderFromDb.StreetAddress = OrderVM.Order.StreetAddress;
@@ -62,25 +64,34 @@ namespace BookWeb.Areas.Admin.Controllers
                 orderFromDb.Carrier = orderFromDb.TrackingNumber;
             }
 
-            _orderRepository.UpdateOrder(orderFromDb);
+            await _orderService.UpdateOrder(orderFromDb);
             TempData["Success"] = "Dettagli ordini aggiornati con successo";
             return RedirectToAction(nameof(Details), new { orderId = orderFromDb.Id });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+        public async Task<IActionResult> StartProcessing()
+        {
+            await _orderService.UpdateOrderStatus(OrderVM.Order.Id, SD.StatusInProcess);
+            TempData["Success"] = "Dettagli ordini aggiornati correttamente";
+            return RedirectToAction(nameof(Details), new { orderid = OrderVM.Order.Id });
         }
 
         #region API CALLS
 
         [HttpGet]
-        public IActionResult GetAll(string status)
+        public async Task<IActionResult> GetAll(string status)
         {
             IEnumerable<Order> orders;
             if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
             {
-                orders = _orderRepository.GetOrders().Result;
+                orders = await _orderService.GetOrdersAsync();
             }
             else 
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                orders = _orderRepository.GetOrderPerUserId(userId).Result;
+                orders = await _orderService.GetOrderPerUserIdAsync(userId);
             }
 
             switch (status)

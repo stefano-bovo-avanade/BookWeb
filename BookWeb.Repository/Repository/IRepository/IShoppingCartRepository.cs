@@ -4,6 +4,7 @@ namespace BookWeb.Repository.Repository.IRepository
 {
     public interface IShoppingCartRepository
     {
+        public Task<ShoppingCart?> GetCartByIdAsync(int id);
         public Task<ShoppingCart?> GetCartByUserIdAsync(string userId);
         public Task<ShoppingCart?> GetCartByCartTokenAsync(string cartToken);
         public Task AddCartAsync(ShoppingCart cart);

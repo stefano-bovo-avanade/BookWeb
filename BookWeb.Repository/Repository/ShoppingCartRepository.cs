@@ -14,6 +14,14 @@ namespace BookWeb.Repository.Repository
             _context = context;
         }
 
+        public async Task<ShoppingCart?> GetCartByIdAsync(int id)
+        {
+            return await _context.ShoppingCarts
+                .Include(c => c.Items)
+                .ThenInclude(item => item.Product)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
         public async Task<ShoppingCart?> GetCartByUserIdAsync(string userId)
         {
             return await _context.ShoppingCarts

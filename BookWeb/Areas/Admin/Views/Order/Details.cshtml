@@ -304,7 +304,8 @@
                             {
                                 if (Model.Order.OrderStatus == SD.StatusApproved)
                                 {
-                                    <button type="submit" class="btn btn-primary form-control my-1">Start Processing</button>
+                                    <button type="submit" asp-action="StartProcessing" 
+                                    class="btn btn-primary form-control my-1">Start Processing</button>
                                 }
                                 if (Model.Order.OrderStatus == SD.StatusInProcess)
                                 {

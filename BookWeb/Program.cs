@@ -1,7 +1,8 @@
 using BookWeb.Repository.Repository;
 using BookWeb.Repository.Repository.IRepository;
-using BookWeb.Service;
 using BookWeb.Service.Context;
+using BookWeb.Service.Service;
+using BookWeb.Service.Service.IService;
 using BookWeb.Utility;
 using BookWeb.Utility.Authentication;
 using BookWeb.Utility.ShoppingCartHelper;
@@ -64,9 +65,12 @@ namespace BookWeb
                 };
             });
             builder.Services.AddAuthorization();
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            });
 
-
-            
             // 1. Configurazione del DbContext
             builder.Services.AddSingleton<DapperContext>();
             builder.Services.AddDbContext<ApplicationDbContext>(options => 
@@ -88,6 +92,9 @@ namespace BookWeb
             MapsterConfig.RegisterMappings();
 
             // 3. Registrazione dei servizi
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
             builder.Services.AddScoped<CartHelper>();
             builder.Services.AddHttpContextAccessor();
