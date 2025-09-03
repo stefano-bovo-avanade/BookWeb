@@ -120,6 +120,7 @@ namespace BookWeb.Service.Service
                         Count = guestItem.Count,
                         Product = guestItem.Product,
                         Price = guestItem.Price,
+                        UnitPrice = guestItem.UnitPrice,
                     });
                 }    
             }
