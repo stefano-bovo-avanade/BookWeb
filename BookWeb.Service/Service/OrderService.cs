@@ -97,7 +97,7 @@ namespace BookWeb.Service.Service
             if (cart == null || cart.Items == null || !cart.Items.Any())
                 return null;
 
-            StripeConfiguration.ApiKey = _configuration["Stripe:SecretKey"];
+            StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
             var domain = _configuration["Stripe:Domain"];
 
             var options = new SessionCreateOptions

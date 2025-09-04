@@ -22,7 +22,10 @@ namespace BookWeb
     {
         public static void Main(string[] args)
         {
+            var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+            StripeConfiguration.ApiKey = stripeSecretKey;
             var builder = WebApplication.CreateBuilder(args);
+            var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
 
             builder.Services.AddControllersWithViews()
             .AddMvcOptions(options =>
@@ -43,7 +46,7 @@ namespace BookWeb
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
@@ -112,7 +115,6 @@ namespace BookWeb
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
             app.UseRouting();
             app.UseAuthentication(); // se vuoi abilitare auth anche fuori dalle API
