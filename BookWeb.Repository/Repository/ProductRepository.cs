@@ -42,7 +42,7 @@ namespace BookWeb.Repository.Repository
                 "[Category_Id], " +
                 "[Category_Name], " +
                 "[Category_DisplayOrder] " +
-                "FROM [BookWeb].[dbo].[ProductsCategories]";
+                "FROM [Bulky].[dbo].[ProductsCategories]";
  
             using (var connection = _context.CreateConnection())
             {

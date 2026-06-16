@@ -31,48 +31,9 @@ namespace BookWeb
             .AddMvcOptions(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
-            })
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All);
             });
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
-                    ClockSkew = TimeSpan.Zero,
-                    RoleClaimType = ClaimTypes.Role
-                };
 
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        if (context.Request.Cookies.ContainsKey("jwt"))
-                        {
-                            context.Token = context.Request.Cookies["jwt"];
-                        }
-                        return Task.CompletedTask;
-                    }
-                };
-            });
-            builder.Services.AddAuthorization();
-            builder.Services.ConfigureApplicationCookie(options =>
-            {
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            });
+            builder.Services.AddRazorPages();
 
             // 1. Configurazione del DbContext
             builder.Services.AddSingleton<DapperContext>();
@@ -102,9 +63,9 @@ namespace BookWeb
             builder.Services.AddScoped<CartHelper>();
             builder.Services.AddHttpContextAccessor();
 
+            builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
             var app = builder.Build();
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Console.OutputEncoding = Encoding.UTF8;
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -121,8 +82,10 @@ namespace BookWeb
             app.UseAuthorization();
 
             app.MapControllerRoute(
-                name: "default",
-                pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
+            name: "default",
+            pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
+
+            app.MapRazorPages();
 
             app.Run();
         }

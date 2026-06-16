@@ -1,5 +1,7 @@
+using BookWeb.Features.Products.Queries;
 using BookWeb.Models;
 using BookWeb.Repository.Repository.IRepository;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -14,15 +16,17 @@ namespace BookWeb.Areas.Customer.Controllers
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IShoppingCartRepository _shoppingCartRepository;
+        private readonly IMediator _mediator;
 
         public HomeController(ILogger<HomeController> logger, IProductRepository productRepository,
             ICategoryRepository categoryRepository, IShoppingCartRepository shoppingCartRepository, 
-            IConfiguration configuration)
+            IConfiguration configuration, IMediator mediator)
         {
             _logger = logger;
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
             _shoppingCartRepository = shoppingCartRepository;
+            _mediator = mediator;
             _config = configuration;
 
         }
@@ -36,7 +40,7 @@ namespace BookWeb.Areas.Customer.Controllers
 
         public async Task<IActionResult> ProductDetail(int productId)
         {
-            var product = await _productRepository.GetProduct(productId);
+            var product = await _mediator.Send(new GetProductByIdQuery(productId));
 
             if (product == null)
             {
