@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace BookWeb.Features.Products.Commands
+namespace BookWeb.Features.Products.Commands.CreateProduct
 {
     public class CreateProductCommand : IRequest<int> // restituisce l'Id del prodotto creato
     {

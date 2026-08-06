@@ -25,7 +25,6 @@ namespace BookWeb
             var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
             StripeConfiguration.ApiKey = stripeSecretKey;
             var builder = WebApplication.CreateBuilder(args);
-            var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET");
 
             builder.Services.AddControllersWithViews()
             .AddMvcOptions(options =>
@@ -33,6 +32,82 @@ namespace BookWeb
                 options.RespectBrowserAcceptHeader = true;
             });
 
+            // sicurezza JWT
+
+            var jwtSettings = builder.Configuration.GetSection("Jwt");
+            var jwtSecret = jwtSettings["Secret"];
+            var jwtIssuer = jwtSettings["Issuer"];
+            var jwtAudience = jwtSettings["Audience"];
+
+            if (string.IsNullOrWhiteSpace(jwtIssuer))
+            {
+                throw new Exception("Jwt:Issuer è null");
+            }
+
+            if (string.IsNullOrWhiteSpace(jwtAudience))
+            {
+                throw new Exception("Jwt:Audience è null");
+            }
+
+            if (string.IsNullOrWhiteSpace(jwtSecret))
+            {
+                throw new Exception("JWT_SECRET è null");
+            }
+
+            var keyBytes = Encoding.UTF8.GetBytes(jwtSecret);
+
+            var signingKey = new SymmetricSecurityKey(keyBytes);
+
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
+                IssuerSigningKey = signingKey
+            };
+
+            builder.Services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme =
+                        JwtBearerDefaults.AuthenticationScheme;
+
+                    options.DefaultChallengeScheme =
+                        JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            context.Token = context.Request.Cookies["jwt"];
+                            return Task.CompletedTask;
+                        }
+                    };
+
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+
+                        ValidIssuer = jwtIssuer,
+                        ValidAudience = jwtAudience,
+
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtSecret))
+                    };
+                });
+
+            // end sicurezza JWT
+
+            builder.Services.AddAuthorization();
             builder.Services.AddRazorPages();
 
             // 1. Configurazione del DbContext

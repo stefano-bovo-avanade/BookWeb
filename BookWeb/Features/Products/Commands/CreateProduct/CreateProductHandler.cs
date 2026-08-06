@@ -2,7 +2,7 @@
 using BookWeb.Service.Context;
 using MediatR;
 
-namespace BookWeb.Features.Products.Commands
+namespace BookWeb.Features.Products.Commands.CreateProduct
 {
     public class CreateProductCommandHandler
     : IRequestHandler<CreateProductCommand, int>

@@ -83,6 +83,16 @@ namespace BookWeb.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll(string status)
         {
+            Console.WriteLine($"Authenticated: {User.Identity?.IsAuthenticated}");
+
+            foreach (var claim in User.Claims)
+            {
+                Console.WriteLine($"{claim.Type} = {claim.Value}");
+            }
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Console.WriteLine($"UserId: {userId}");
+
             IEnumerable<Order> orders;
             if (User.IsInRole(SD.Role_Admin) || User.IsInRole(SD.Role_Employee))
             {
@@ -90,7 +100,6 @@ namespace BookWeb.Areas.Admin.Controllers
             }
             else 
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 orders = await _orderService.GetOrderPerUserIdAsync(userId);
             }
 
