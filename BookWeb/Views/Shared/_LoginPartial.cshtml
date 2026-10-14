@@ -1,40 +1,43 @@
-﻿@using BookWeb.Common.Authentication
-@inject IConfiguration Configuration
+﻿<ul class="navbar-nav">
 
-<ul class="navbar-nav">
-@if (JwtHelper.IsUserLoggedIn(Context, Configuration))
-{
-    @* <li class="nav-item">
-        <a id="manage" class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
-    </li>
-    <li class="nav-item">
-        <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button id="logout" type="submit" class="nav-link btn btn-link border-0">Logout</button>
-        </form>
-    </li> *@
-
-    @if (User.IsInRole("Admin"))
+    @if (User.Identity?.IsAuthenticated == true)
     {
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Account" asp-action="Register">Registra un utente</a>
+            <span class="nav-link">
+                Ruolo attivo: @(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)
+            </span>
+        </li>
+
+        <li class="nav-item">
+            <form asp-area="Customer"
+                  asp-controller="Account"
+                  asp-action="Logout"
+                  method="post">
+                <button type="submit" class="nav-link btn btn-link border-0">
+                    Logout
+                </button>
+            </form>
         </li>
     }
-    <li class="nav-item">
-        <a id="manage" href="#" class="nav-link">Hello</a>
-    </li>
-    <li class="nav-item">
-        <form class="form-inline" asp-area="Customer" asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
-                <button type="submit" class="nav-link btn btn-link border-0">Logout</button>
-        </form>
-    </li>
-}
-else
-{
-    <li class="nav-item">
-        <a class="nav-link" asp-controller="Account" asp-action="Register">Registrati</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
-    </li>
-}
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link"
+               asp-area="Customer"
+               asp-controller="Account"
+               asp-action="Register">
+                Registrati
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link"
+               asp-area="Customer"
+               asp-controller="Account"
+               asp-action="Login">
+                Login
+            </a>
+        </li>
+    }
+
 </ul>

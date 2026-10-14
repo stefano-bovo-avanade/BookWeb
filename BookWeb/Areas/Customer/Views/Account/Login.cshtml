@@ -1,12 +1,12 @@
-﻿@* <form asp-controller="Account" asp-action="Login" method="post">
-    <input name="username" placeholder="Username" />
-    <input name="password" type="password" placeholder="Password" />
-    <button type="submit">Login</button>
-</form>
+﻿@model BookWeb.Models.Models.LoginRequest
+
+
 @if (ViewBag.Error != null)
 {
-    <div style="color:red">@ViewBag.Error</div>
-} *@
+    <div class="alert alert-danger" role="alert">
+        @ViewBag.Error
+    </div>
+}
 
 <div class="card shadow border-0 mt-4">
     <div class="card-header bg-secondary bg-gradient m-lg-0 py-4">
@@ -21,19 +21,41 @@
             <div class="col-md-12">
                 <section>
                     <form asp-controller="Account" asp-action="Login" method="post">
+                        <input type="hidden" name="LoginTicket" value="@Model?.LoginTicket" />
                         <input type="hidden" name="ReturnUrl" value="@Context.Request.Query["ReturnUrl"]" />
                         <h3 class="border-bottom pb-3 mb-4 text-secondary text-center">
                             Usa un account locale per effettuare il log in.
                         </h3>
                         <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
                         <div class="form-floating mb-3">
-                            <input class="form-control" name="username" placeholder="Username" />
+                            <input asp-for="UserName" class="form-control" placeholder="Username" />
                             <label class="form-label">Email</label>
                         </div>
                         <div class="form-floating mb-3">
-                            <input class="form-control" name="password" type="password" placeholder="Password" />
+                            <input asp-for="Password" class="form-control" type="password" placeholder="Password" />
                             <label class="form-label">Password</label>
                         </div>
+                        @if (ViewBag.Roles != null)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Accedi come:</label>
+
+                                @foreach (var role in ViewBag.Roles)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input"
+                                               type="radio"
+                                               asp-for="RoleId"
+                                               value="@role.Id"
+                                               id="role_@role.Id" />
+
+                                        <label class="form-check-label" for="role_@role.Id">
+                                            @role.Name
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        }
                         <div>
                             <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
                         </div>

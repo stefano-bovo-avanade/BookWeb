@@ -1,3 +1,4 @@
+using BookWeb.Models.Models;
 using BookWeb.Repository.Repository;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Context;
@@ -5,14 +6,15 @@ using BookWeb.Service.Service;
 using BookWeb.Service.Service.IService;
 using BookWeb.Utility;
 using BookWeb.Utility.Authentication;
+using BookWeb.Utility.Authorization;
 using BookWeb.Utility.ShoppingCartHelper;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Stripe;
-using System.Security.Claims;
 using System.Text;
 using MapsterConfig = BookWeb.Areas.Mapster.MapsterConfig;
 
@@ -33,77 +35,40 @@ namespace BookWeb
             });
 
             // sicurezza JWT
-
-            var jwtSettings = builder.Configuration.GetSection("Jwt");
-            var jwtSecret = jwtSettings["Secret"];
-            var jwtIssuer = jwtSettings["Issuer"];
-            var jwtAudience = jwtSettings["Audience"];
-
-            if (string.IsNullOrWhiteSpace(jwtIssuer))
-            {
-                throw new Exception("Jwt:Issuer è null");
-            }
-
-            if (string.IsNullOrWhiteSpace(jwtAudience))
-            {
-                throw new Exception("Jwt:Audience è null");
-            }
-
-            if (string.IsNullOrWhiteSpace(jwtSecret))
-            {
-                throw new Exception("JWT_SECRET è null");
-            }
-
-            var keyBytes = Encoding.UTF8.GetBytes(jwtSecret);
-
-            var signingKey = new SymmetricSecurityKey(keyBytes);
-
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-
-                ValidIssuer = jwtIssuer,
-                ValidAudience = jwtAudience,
-                IssuerSigningKey = signingKey
-            };
-
             builder.Services
-                .AddAuthentication(options =>
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.DefaultAuthenticateScheme =
-                        JwtBearerDefaults.AuthenticationScheme;
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
 
-                    options.DefaultChallengeScheme =
-                        JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(
+                            builder.Configuration["Jwt:SecretKey"]!
+                        )
+                    ),
+
+                    RoleClaimType = System.Security.Claims.ClaimTypes.Role,
+                    NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier
+                };
+
+                options.Events = new JwtBearerEvents
                 {
-                    options.Events = new JwtBearerEvents
+                    OnMessageReceived = context =>
                     {
-                        OnMessageReceived = context =>
-                        {
-                            context.Token = context.Request.Cookies["jwt"];
-                            return Task.CompletedTask;
-                        }
-                    };
+                        context.Token = context.Request.Cookies["jwt"];
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-
-                        ValidIssuer = jwtIssuer,
-                        ValidAudience = jwtAudience,
-
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(jwtSecret))
-                    };
-                });
 
             // end sicurezza JWT
 
@@ -125,7 +90,6 @@ namespace BookWeb
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<AuthService>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddMapster();
             MapsterConfig.RegisterMappings();
@@ -136,6 +100,8 @@ namespace BookWeb
             builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
             builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
             builder.Services.AddScoped<CartHelper>();
+            builder.Services.AddScoped<UserAuthorizationService>();
+            builder.Services.AddScoped<JwtService>();
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
@@ -161,6 +127,60 @@ namespace BookWeb
             pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 
             app.MapRazorPages();
+
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                var context = services.GetRequiredService<ApplicationDbContext>();
+
+                var passwordHasher = new PasswordHasher<User>();
+
+                const string username = "admin";
+
+                var adminEsistente = context.Users
+                    .FirstOrDefault(u => u.UserName == username);
+
+                if (adminEsistente == null)
+                {
+                    var adminRole = context.Roles
+                        .FirstOrDefault(r => r.Name == "Admin");
+
+                    if (adminRole == null)
+                    {
+                        throw new InvalidOperationException(
+                            "Il ruolo Admin non esiste nel database.");
+                    }
+
+                    var admin = new User
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        UserName = username,
+                        Email = "admin@esempio.it",
+                        Name = "Administrator",
+                        PhoneNumber = "0000000000",
+                        RoleId = adminRole.Id,
+                        Role = adminRole
+                    };
+
+                    admin.PasswordHash = passwordHasher.HashPassword(
+                        admin,
+                        "Admin123!"
+                    );
+
+                    context.Users.Add(admin);
+
+                    context.UserRoles.Add(new UserRole
+                    {
+                        UserId = admin.Id,
+                        RoleId = adminRole.Id
+                    });
+
+                    context.SaveChanges();
+                }
+            }
+
 
             app.Run();
         }

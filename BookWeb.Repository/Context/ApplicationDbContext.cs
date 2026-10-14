@@ -18,6 +18,11 @@ namespace BookWeb.Service.Context
         public DbSet<Category> Categories { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
+        public DbSet<PendingLogin> PendingLogins { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -26,6 +31,9 @@ namespace BookWeb.Service.Context
             // Customize the ASP.NET Identity model and override the defaults if needed.
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
+
+            builder.Entity<Order>().ToTable("OrderHeaders");
+            builder.Entity<OrderDetail>().ToTable("OrderDetails");
 
             builder.Entity<Company>().HasData(
                 new Company
@@ -66,6 +74,51 @@ namespace BookWeb.Service.Context
                 new Role { Id = 3, Name = "Employee" },
                 new Role { Id = 4, Name = "Customer" }
             );
+
+            builder.Entity<UserRole>()
+    .HasKey(x => new { x.UserId, x.RoleId });
+
+            builder.Entity<RolePermission>()
+                .HasKey(x => new { x.RoleId, x.PermissionId });
+
+            builder.Entity<UserPermission>()
+                .HasKey(x => new { x.UserId, x.PermissionId });
+
+            builder.Entity<UserRole>()
+    .HasOne(x => x.User)
+    .WithMany(x => x.UserRoles)
+    .HasForeignKey(x => x.UserId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserRole>()
+                .HasOne(x => x.Role)
+                .WithMany(x => x.UserRoles)
+                .HasForeignKey(x => x.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RolePermission>()
+                .HasOne(x => x.Role)
+                .WithMany(x => x.RolePermissions)
+                .HasForeignKey(x => x.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RolePermission>()
+                .HasOne(x => x.Permission)
+                .WithMany(x => x.RolePermissions)
+                .HasForeignKey(x => x.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserPermission>()
+                .HasOne(x => x.User)
+                .WithMany(x => x.UserPermissions)
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserPermission>()
+                .HasOne(x => x.Permission)
+                .WithMany(x => x.UserPermissions)
+                .HasForeignKey(x => x.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

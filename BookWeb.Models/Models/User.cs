@@ -11,7 +11,7 @@ namespace BookWeb.Models.Models
         [Required]
         public string UserName { get; set; }
 
-        public string? PasswordHash { get; set; }
+        public string PasswordHash { get; set; }
 
         [Required]
         public string Name { get; set; }
@@ -38,5 +38,9 @@ namespace BookWeb.Models.Models
         public Role Role { get; set; }
 
         public int RoleId { get; set; }
+
+        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
     }
 }
