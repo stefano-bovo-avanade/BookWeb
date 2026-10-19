@@ -1,189 +1,124 @@
 using BookWeb.Models.Models;
-using BookWeb.Repository.Repository;
-using BookWeb.Repository.Repository.IRepository;
+using BookWeb.Registrations;
 using BookWeb.Service.Context;
-using BookWeb.Service.Service;
-using BookWeb.Service.Service.IService;
-using BookWeb.Utility;
-using BookWeb.Utility.Authentication;
-using BookWeb.Utility.Authorization;
-using BookWeb.Utility.ShoppingCartHelper;
-using Mapster;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Stripe;
-using System.Text;
-using MapsterConfig = BookWeb.Areas.Mapster.MapsterConfig;
 
-namespace BookWeb
+namespace BookWeb;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
-            StripeConfiguration.ApiKey = stripeSecretKey;
-            var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Host.AddLoggingConfiguration();
 
-            builder.Services.AddControllersWithViews()
+        // Configurazione Stripe
+        StripeConfiguration.ApiKey =
+            Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
+
+        // Registrazione dei servizi
+        builder.Services.AddControllersWithViews()
             .AddMvcOptions(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
             });
 
-            // sicurezza JWT
-            builder.Services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
-
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            builder.Configuration["Jwt:SecretKey"]!
-                        )
-                    ),
-
-                    RoleClaimType = System.Security.Claims.ClaimTypes.Role,
-                    NameClaimType = System.Security.Claims.ClaimTypes.NameIdentifier
-                };
-
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
-                    {
-                        context.Token = context.Request.Cookies["jwt"];
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+        builder.Services.AddRazorPages();
+        builder.Services.AddHttpContextAccessor();
 
 
-            // end sicurezza JWT
+        // Registrazioni personalizzate
+        builder.Services.AddDatabase(builder.Configuration);
+        builder.Services.AddRepositories();
+        builder.Services.AddApplicationServices();
+        builder.Services.AddJwtAuthentication(builder.Configuration);
+        builder.Services.AddMapping();
 
-            builder.Services.AddAuthorization();
-            builder.Services.AddRazorPages();
+        var app = builder.Build();
 
-            // 1. Configurazione del DbContext
-            builder.Services.AddSingleton<DapperContext>();
-            builder.Services.AddDbContext<ApplicationDbContext>(options => 
-                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+        // Configurazione della pipeline HTTP
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseExceptionHandler("/Home/Error");
+            app.UseHsts();
+        }
 
+        app.UseHttpsRedirection();
 
-            // 2. Registrazione dei repository
-            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
-            builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
-            builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
-            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-            builder.Services.AddScoped<IOrderDetailRepository, OrderDetailRepository>();
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<IEmailSender, EmailSender>();
-            builder.Services.AddMapster();
-            MapsterConfig.RegisterMappings();
+        app.UseStaticFiles();
 
-            // 3. Registrazione dei servizi
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IOrderService, OrderService>();
-            builder.Services.AddScoped<IOrderDetailService, OrderDetailService>();
-            builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
-            builder.Services.AddScoped<CartHelper>();
-            builder.Services.AddScoped<UserAuthorizationService>();
-            builder.Services.AddScoped<JwtService>();
-            builder.Services.AddHttpContextAccessor();
+        app.UseRouting();
 
-            builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+        app.UseAuthentication();
+        app.UseAuthorization();
 
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
-            {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-            app.UseAuthentication(); // se vuoi abilitare auth anche fuori dalle API
-            app.UseAuthorization();
-
-            app.MapControllerRoute(
+        // Routing MVC
+        app.MapControllerRoute(
             name: "default",
             pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 
-            app.MapRazorPages();
+        app.MapRazorPages();
 
+        // Inizializzazione dell'amministratore
+        SeedAdmin(app);
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
+        app.Run();
+    }
 
-                var context = services.GetRequiredService<ApplicationDbContext>();
+    private static void SeedAdmin(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
 
-                var passwordHasher = new PasswordHasher<User>();
+        var services = scope.ServiceProvider;
 
-                const string username = "admin";
+        var context = services.GetRequiredService<ApplicationDbContext>();
 
-                var adminEsistente = context.Users
-                    .FirstOrDefault(u => u.UserName == username);
+        var passwordHasher = new PasswordHasher<User>();
 
-                if (adminEsistente == null)
-                {
-                    var adminRole = context.Roles
-                        .FirstOrDefault(r => r.Name == "Admin");
+        const string username = "admin";
 
-                    if (adminRole == null)
-                    {
-                        throw new InvalidOperationException(
-                            "Il ruolo Admin non esiste nel database.");
-                    }
+        var adminEsistente = context.Users
+            .FirstOrDefault(u => u.UserName == username);
 
-                    var admin = new User
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        UserName = username,
-                        Email = "admin@esempio.it",
-                        Name = "Administrator",
-                        PhoneNumber = "0000000000",
-                        RoleId = adminRole.Id,
-                        Role = adminRole
-                    };
-
-                    admin.PasswordHash = passwordHasher.HashPassword(
-                        admin,
-                        "Admin123!"
-                    );
-
-                    context.Users.Add(admin);
-
-                    context.UserRoles.Add(new UserRole
-                    {
-                        UserId = admin.Id,
-                        RoleId = adminRole.Id
-                    });
-
-                    context.SaveChanges();
-                }
-            }
-
-
-            app.Run();
+        if (adminEsistente != null)
+        {
+            return;
         }
 
+        var adminRole = context.Roles
+            .FirstOrDefault(r => r.Name == "Admin");
+
+        if (adminRole == null)
+        {
+            throw new InvalidOperationException(
+                "Il ruolo Admin non esiste nel database.");
+        }
+
+        var admin = new User
+        {
+            Id = Guid.NewGuid().ToString(),
+            UserName = username,
+            Email = "admin@esempio.it",
+            Name = "Administrator",
+            PhoneNumber = "0000000000",
+            RoleId = adminRole.Id,
+            Role = adminRole
+        };
+
+        admin.PasswordHash = passwordHasher.HashPassword(
+            admin,
+            "Admin123!");
+
+        context.Users.Add(admin);
+
+        context.UserRoles.Add(new UserRole
+        {
+            UserId = admin.Id,
+            RoleId = adminRole.Id
+        });
+
+        context.SaveChanges();
     }
+
 }

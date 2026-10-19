@@ -1,13 +1,15 @@
 ﻿using BookWeb.Models.Models;
 using BookWeb.Repository.Repository.IRepository;
 using BookWeb.Service.Service.IService;
+using Microsoft.Extensions.Logging;
 
 namespace BookWeb.Service.Service
 {
     public class OrderDetailService : IOrderDetailService
     {
         private readonly IOrderDetailRepository _orderDetailRepository;
-       
+        private readonly ILogger<OrderDetailService> _logger;
+
         public OrderDetailService(
             IOrderDetailRepository orderDetailRepository)
         {
@@ -17,7 +19,10 @@ namespace BookWeb.Service.Service
         
         public async Task<OrderDetail> GetOrderDetail(int? Id)
         {
+
+            _logger.LogInformation($"Getting OrderDetail with Id: {Id}");
             return await _orderDetailRepository.GetOrderDetail(Id);
+
         }
 
         public async Task<IEnumerable<OrderDetail>> GetOrderDetails()
