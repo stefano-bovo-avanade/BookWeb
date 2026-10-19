@@ -54,9 +54,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Products\DTOS\" />
-    <Folder Include="Features\Products\Mappings\" />
-    <Folder Include="Features\Products\Validators\" />
     <Folder Include="wwwroot\images\Product\" />
   </ItemGroup>
 
