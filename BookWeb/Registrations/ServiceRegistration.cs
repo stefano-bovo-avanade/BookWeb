@@ -23,6 +23,7 @@ public static class ServiceRegistration
         services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, BookWeb.Utility.EmailSender>();
 
         //services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+        services.AddScoped<IProductService, ProductService>();
 
         return services;
     }

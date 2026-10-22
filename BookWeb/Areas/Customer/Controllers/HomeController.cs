@@ -11,6 +11,8 @@ namespace BookWeb.Areas.Customer.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IProductRepository _productRepository;
 
+        private const string ControllerName = nameof(HomeController);
+
         public HomeController(
             ILogger<HomeController> logger,
             IProductRepository productRepository)
@@ -21,32 +23,117 @@ namespace BookWeb.Areas.Customer.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var productList = await _productRepository.GetProducts();
+            var stopwatch = Stopwatch.StartNew();
 
-            ViewBag.Username = User?.Identity?.Name ?? "Guest";
+            _logger.LogInformation(
+                "START | Controller: {ControllerName} | Method: {MethodName}",
+                ControllerName,
+                nameof(Index));
 
-            return View(productList);
+            try
+            {
+                var productList = await _productRepository.GetProducts();
+
+                ViewBag.Username = User?.Identity?.Name ?? "Guest";
+
+                return View(productList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {ControllerName} | Method: {MethodName}",
+                    ControllerName,
+                    nameof(Index));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {ControllerName} | Method: {MethodName} | Duration: {ElapsedMilliseconds} ms",
+                    ControllerName,
+                    nameof(Index),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
 
         public async Task<IActionResult> ProductDetail(int productId)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             _logger.LogInformation(
-                "Getting Product with Id: {ProductId}",
+                "START | Controller: {ControllerName} | Method: {MethodName} | ProductId: {ProductId}",
+                ControllerName,
+                nameof(ProductDetail),
                 productId);
 
-            var product = await _productRepository.GetProduct(productId);
-
-            if (product == null)
+            try
             {
-                return NotFound();
-            }
+                var product = await _productRepository.GetProduct(productId);
 
-            return View(product);
+                if (product == null)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {ControllerName} | Method: {MethodName} | ProductId: {ProductId} | Product not found",
+                        ControllerName,
+                        nameof(ProductDetail),
+                        productId);
+
+                    return NotFound();
+                }
+
+                return View(product);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {ControllerName} | Method: {MethodName} | ProductId: {ProductId}",
+                    ControllerName,
+                    nameof(ProductDetail),
+                    productId);
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {ControllerName} | Method: {MethodName} | ProductId: {ProductId} | Duration: {ElapsedMilliseconds} ms",
+                    ControllerName,
+                    nameof(ProductDetail),
+                    productId,
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
 
         public IActionResult Privacy()
         {
-            return View();
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {ControllerName} | Method: {MethodName}",
+                ControllerName,
+                nameof(Privacy));
+
+            try
+            {
+                return View();
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {ControllerName} | Method: {MethodName} | Duration: {ElapsedMilliseconds} ms",
+                    ControllerName,
+                    nameof(Privacy),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
 
         [ResponseCache(
@@ -55,11 +142,31 @@ namespace BookWeb.Areas.Customer.Controllers
             NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {ControllerName} | Method: {MethodName}",
+                ControllerName,
+                nameof(Error));
+
+            try
             {
-                RequestId = Activity.Current?.Id
-                    ?? HttpContext.TraceIdentifier
-            });
+                return View(new ErrorViewModel
+                {
+                    RequestId = Activity.Current?.Id
+                        ?? HttpContext.TraceIdentifier
+                });
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {ControllerName} | Method: {MethodName} | Duration: {ElapsedMilliseconds} ms",
+                    ControllerName,
+                    nameof(Error),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
     }
 }

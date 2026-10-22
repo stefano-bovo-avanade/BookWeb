@@ -4,14 +4,14 @@ namespace BookWeb.Repository.Repository.IRepository
 {
     public interface IProductRepository
     {
-        public Task<Product> GetProduct(int? Id);
+        Task<Product?> GetProduct(int? id);
 
-        public Task<IEnumerable<VProduct>> GetProducts();
+        Task<IEnumerable<VProduct>> GetProducts();
 
-        public Task<int> InsertProduct(Product Product);
+        Task<int> InsertProduct(Product product);
 
-        public Task<int> UpdateProduct(Product Product);
+        Task<int> UpdateProduct(Product product);
 
-        public Task<int> DeleteProduct(int? id);
+        Task<int> DeleteProduct(int? id);
     }
 }

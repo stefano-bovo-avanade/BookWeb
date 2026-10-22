@@ -1,4 +1,6 @@
-﻿using BookWeb.Models.Models;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
+using BookWeb.Models.Models;
 using BookWeb.Models.ViewModels;
 using BookWeb.Service.Context;
 using BookWeb.Service.Service.IService;
@@ -21,6 +23,9 @@ namespace BookWeb.Areas.Customer.Controllers
         private readonly IShoppingCartService _shoppingCartService;
         private readonly JwtService _jwtService;
         private readonly CartHelper _cartHelper;
+        private readonly ILogger<AccountController> _logger;
+
+        private const string ControllerName = nameof(AccountController);
 
         public AccountController(
             IConfiguration config,
@@ -28,7 +33,8 @@ namespace BookWeb.Areas.Customer.Controllers
             IMapper mapper,
             IShoppingCartService shoppingCartService,
             JwtService jwtService,
-            CartHelper cartHelper)
+            CartHelper cartHelper,
+            ILogger<AccountController> logger)
         {
             _config = config;
             _context = context;
@@ -36,386 +42,947 @@ namespace BookWeb.Areas.Customer.Controllers
             _shoppingCartService = shoppingCartService;
             _jwtService = jwtService;
             _cartHelper = cartHelper;
+            _logger = logger;
         }
+
+        // =========================================================
+        // REGISTER GET
+        // =========================================================
 
         [HttpGet]
         public IActionResult Register()
         {
-            var roles = _context.Roles.ToList();
-            var companies = _context.Companies.ToList();
-            UserVM userVM = new UserVM()
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(Register));
+
+            try
             {
-                InputUser = new(),
-                Companies = new SelectList(companies, "Id", "Name"),
-            };
-            if (User.IsInRole("Admin"))
-            {
-                userVM.Roles = roles.Select(r => new SelectListItem
+                var roles = _context.Roles.ToList();
+                var companies = _context.Companies.ToList();
+
+                UserVM userVM = new UserVM
                 {
-                    Value = r.Id.ToString(),
-                    Text = r.Name,
-                });
-            }
-            else
-            {
-                userVM.Roles = roles.Select(r => new SelectListItem
+                    InputUser = new(),
+                    Companies = new SelectList(
+                        companies,
+                        "Id",
+                        "Name")
+                };
+
+                if (User.IsInRole("Admin"))
                 {
-                    Value = r.Id.ToString(),
-                    Text = r.Name,
-                }).Where(i => i.Text != "Admin");
-            }
-                //ViewBag.Roles = new SelectList(categories, "Id", "Name");
+                    userVM.Roles = roles.Select(r => new SelectListItem
+                    {
+                        Value = r.Id.ToString(),
+                        Text = r.Name
+                    });
+                }
+                else
+                {
+                    userVM.Roles = roles
+                        .Select(r => new SelectListItem
+                        {
+                            Value = r.Id.ToString(),
+                            Text = r.Name
+                        })
+                        .Where(i => i.Text != "Admin");
+                }
+
                 return View(userVM);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(Register));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(Register),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
+
+        // =========================================================
+        // REGISTER POST
+        // =========================================================
 
         [HttpPost]
         public async Task<IActionResult> Register(InputUser inputUser)
         {
-            if (string.IsNullOrWhiteSpace(inputUser.UserName) || string.IsNullOrWhiteSpace(inputUser.Password))
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(Register));
+
+            try
             {
-                ViewBag.Error = "Username e password obbligatori";
-                return View();
+                if (string.IsNullOrWhiteSpace(inputUser.UserName) ||
+                    string.IsNullOrWhiteSpace(inputUser.Password))
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: username o password mancanti",
+                        ControllerName,
+                        nameof(Register));
+
+                    ViewBag.Error = "Username e password obbligatori";
+
+                    return View();
+                }
+
+                var hasher = new PasswordHasher<User>();
+
+                var user = _mapper
+                    .From(inputUser)
+                    .AdaptToType<User>();
+
+                user.Id = Guid.NewGuid().ToString();
+
+                user.PasswordHash = hasher.HashPassword(
+                    user,
+                    inputUser.Password);
+
+                user.Role = _context.Roles
+                    .FirstOrDefault(r => r.Id == inputUser.RoleId)!;
+
+                // Mantiene il comportamento originale.
+                // Il codice originale non salva l'utente nel database.
+                // Login automatico dopo registrazione.
+
+                await Task.CompletedTask;
+
+                return RedirectToAction("Index", "Home");
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(Register));
 
-            var user = new User();
-            var hasher = new PasswordHasher<User>();
-            user = _mapper.From(inputUser).AdaptToType<User>();
-            user.Id = Guid.NewGuid().ToString();
-            user.PasswordHash = hasher.HashPassword(user, inputUser.Password);
-            user.Role = _context.Roles.Where(r => r.Id == inputUser.RoleId).FirstOrDefault()!;
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
 
-
-            // Login automatico dopo registrazione
-
-            return RedirectToAction("Index", "Home");
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(Register),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
 
+        // =========================================================
+        // LOGIN GET
+        // =========================================================
+
         [HttpGet]
-        public IActionResult Login() => View();
+        public IActionResult Login()
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(Login));
+
+            try
+            {
+                return View();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(Login));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(Login),
+                    stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        // =========================================================
+        // LOGIN POST
+        // =========================================================
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(
-        LoginRequest request,
-        string returnUrl = null)
+            LoginRequest request,
+            string returnUrl = null)
         {
-            if (!string.IsNullOrWhiteSpace(request.LoginTicket))
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(Login));
+
+            try
             {
-                return await LoginWithTicketAsync(request, returnUrl);
-            }
-
-            return await LoginWithCredentialsAsync(request, returnUrl);
-        }
-
-
-        private async Task<IActionResult> LoginWithTicketAsync(
-        LoginRequest request,
-        string returnUrl)
-        {
-            var pendingLogin = await _context.PendingLogins
-                .FirstOrDefaultAsync(p => p.Ticket == request.LoginTicket);
-
-            if (pendingLogin == null ||
-                pendingLogin.ExpiresAt <= DateTime.UtcNow)
-            {
-                if (pendingLogin != null)
+                if (!string.IsNullOrWhiteSpace(request.LoginTicket))
                 {
-                    _context.PendingLogins.Remove(pendingLogin);
-                    await _context.SaveChangesAsync();
+                    return await LoginWithTicketAsync(
+                        request,
+                        returnUrl);
                 }
 
-                ViewBag.Error = "Sessione di login scaduta. Accedi nuovamente.";
-                return View("Login", new LoginRequest());
+                return await LoginWithCredentialsAsync(
+                    request,
+                    returnUrl);
             }
-
-            var allowedRoleIds = pendingLogin.AllowedRoleIds
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(int.Parse)
-                .ToList();
-
-            if (request.RoleId == null ||
-                !allowedRoleIds.Contains(request.RoleId.Value))
+            catch (Exception ex)
             {
-                ViewBag.Error = request.RoleId == null
-                    ? "Seleziona un ruolo."
-                    : "Ruolo selezionato non valido.";
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(Login));
 
-                ViewBag.Roles = await _context.Roles
-                    .Where(r => allowedRoleIds.Contains(r.Id))
-                    .OrderBy(r => r.Name)
-                    .ToListAsync();
-
-                return View("Login", request);
+                throw;
             }
-
-            var user = await _context.Users
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.Id == pendingLogin.UserId);
-
-            if (user == null)
+            finally
             {
-                _context.PendingLogins.Remove(pendingLogin);
-                await _context.SaveChangesAsync();
+                stopwatch.Stop();
 
-                ViewBag.Error = "Utente non trovato. Accedi nuovamente.";
-                return View("Login", new LoginRequest());
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(Login),
+                    stopwatch.ElapsedMilliseconds);
             }
-
-            var selectedRole = await _context.Roles
-                .FirstOrDefaultAsync(r => r.Id == request.RoleId.Value);
-
-            if (selectedRole == null)
-            {
-                ViewBag.Error = "Ruolo non valido.";
-
-                ViewBag.Roles = await _context.Roles
-                    .Where(r => allowedRoleIds.Contains(r.Id))
-                    .OrderBy(r => r.Name)
-                    .ToListAsync();
-
-                return View("Login", request);
-            }
-
-            var originalRoles = user.UserRoles
-                .Select(ur => ur.Role)
-                .ToList();
-
-            if (originalRoles.Count == 0)
-            {
-                _context.PendingLogins.Remove(pendingLogin);
-                await _context.SaveChangesAsync();
-
-                ViewBag.Error = "Utente senza ruoli assegnati.";
-                return View("Login", new LoginRequest());
-            }
-
-            var originalRole = GetOriginalRole(originalRoles);
-
-            if (originalRole == null)
-            {
-                ViewBag.Error = "Impossibile determinare il ruolo originale.";
-                return View("Login", new LoginRequest());
-            }
-
-            _context.PendingLogins.Remove(pendingLogin);
-            await _context.SaveChangesAsync();
-
-            return await CompleteLoginAsync(
-                user.Id,
-                originalRole,
-                selectedRole.Name,
-                returnUrl);
         }
 
-        private async Task<IActionResult> LoginWithCredentialsAsync(
-        LoginRequest request,
-        string returnUrl)
+        // =========================================================
+        // LOGIN WITH TICKET
+        // =========================================================
+
+        private async Task<IActionResult> LoginWithTicketAsync(
+            LoginRequest request,
+            string returnUrl)
         {
-            if (string.IsNullOrWhiteSpace(request.UserName) ||
-                string.IsNullOrWhiteSpace(request.Password))
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(LoginWithTicketAsync));
+
+            try
             {
-                ViewBag.Error = "Username e password obbligatori.";
-                return View("Login", request);
-            }
+                var pendingLogin = await _context.PendingLogins
+                    .FirstOrDefaultAsync(
+                        p => p.Ticket == request.LoginTicket);
 
-            var user = await _context.Users
-                .Include(u => u.UserRoles)
-                    .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.UserName == request.UserName);
+                if (pendingLogin == null ||
+                    pendingLogin.ExpiresAt <= DateTime.UtcNow)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: ticket assente o scaduto",
+                        ControllerName,
+                        nameof(LoginWithTicketAsync));
 
-            if (user == null || string.IsNullOrEmpty(user.PasswordHash))
-            {
-                ViewBag.Error = "Credenziali errate.";
-                return View("Login", request);
-            }
+                    if (pendingLogin != null)
+                    {
+                        _context.PendingLogins.Remove(pendingLogin);
+                        await _context.SaveChangesAsync();
+                    }
 
-            var hasher = new PasswordHasher<User>();
+                    ViewBag.Error =
+                        "Sessione di login scaduta. Accedi nuovamente.";
 
-            var result = hasher.VerifyHashedPassword(
-                user,
-                user.PasswordHash,
-                request.Password);
+                    return View("Login", new LoginRequest());
+                }
 
-            if (result == PasswordVerificationResult.Failed)
-            {
-                ViewBag.Error = "Credenziali errate.";
-                return View("Login", request);
-            }
+                var allowedRoleIds = pendingLogin.AllowedRoleIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList();
 
-            var originalRoles = user.UserRoles
-                .Select(ur => ur.Role)
-                .ToList();
+                if (request.RoleId == null ||
+                    !allowedRoleIds.Contains(request.RoleId.Value))
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: ruolo mancante o non autorizzato",
+                        ControllerName,
+                        nameof(LoginWithTicketAsync));
 
-            if (originalRoles.Count == 0)
-            {
-                ViewBag.Error = "Utente senza ruoli assegnati.";
-                return View("Login", request);
-            }
+                    ViewBag.Error = request.RoleId == null
+                        ? "Seleziona un ruolo."
+                        : "Ruolo selezionato non valido.";
 
-            var availableRoles = await GetAvailableRolesAsync(originalRoles);
+                    ViewBag.Roles = await _context.Roles
+                        .Where(r => allowedRoleIds.Contains(r.Id))
+                        .OrderBy(r => r.Name)
+                        .ToListAsync();
 
-            if (availableRoles.Count == 0)
-            {
-                ViewBag.Error = "Non sono disponibili ruoli per questo utente.";
-                return View("Login", request);
-            }
+                    return View("Login", request);
+                }
 
-            if (availableRoles.Count > 1 && request.RoleId == null)
-            {
-                return await CreatePendingLoginAsync(
+                var user = await _context.Users
+                    .Include(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+                    .FirstOrDefaultAsync(
+                        u => u.Id == pendingLogin.UserId);
+
+                if (user == null)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: utente non trovato",
+                        ControllerName,
+                        nameof(LoginWithTicketAsync));
+
+                    _context.PendingLogins.Remove(pendingLogin);
+                    await _context.SaveChangesAsync();
+
+                    ViewBag.Error =
+                        "Utente non trovato. Accedi nuovamente.";
+
+                    return View("Login", new LoginRequest());
+                }
+
+                var selectedRole = await _context.Roles
+                    .FirstOrDefaultAsync(
+                        r => r.Id == request.RoleId.Value);
+
+                if (selectedRole == null)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: ruolo non trovato",
+                        ControllerName,
+                        nameof(LoginWithTicketAsync));
+
+                    ViewBag.Error = "Ruolo non valido.";
+
+                    ViewBag.Roles = await _context.Roles
+                        .Where(r => allowedRoleIds.Contains(r.Id))
+                        .OrderBy(r => r.Name)
+                        .ToListAsync();
+
+                    return View("Login", request);
+                }
+
+                var originalRoles = user.UserRoles
+                    .Select(ur => ur.Role)
+                    .ToList();
+
+                if (originalRoles.Count == 0)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: utente senza ruoli",
+                        ControllerName,
+                        nameof(LoginWithTicketAsync));
+
+                    _context.PendingLogins.Remove(pendingLogin);
+                    await _context.SaveChangesAsync();
+
+                    ViewBag.Error = "Utente senza ruoli assegnati.";
+
+                    return View("Login", new LoginRequest());
+                }
+
+                var originalRole = GetOriginalRole(originalRoles);
+
+                if (originalRole == null)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: ruolo originale non determinabile",
+                        ControllerName,
+                        nameof(LoginWithTicketAsync));
+
+                    ViewBag.Error =
+                        "Impossibile determinare il ruolo originale.";
+
+                    return View("Login", new LoginRequest());
+                }
+
+                _context.PendingLogins.Remove(pendingLogin);
+                await _context.SaveChangesAsync();
+
+                return await CompleteLoginAsync(
                     user.Id,
-                    availableRoles,
-                    request);
+                    originalRole,
+                    selectedRole.Name,
+                    returnUrl);
             }
-
-            var selectedRole = availableRoles
-                .FirstOrDefault(r => r.Id == request.RoleId);
-
-            if (selectedRole == null)
+            catch (Exception ex)
             {
-                ViewBag.Error = "Ruolo selezionato non valido.";
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(LoginWithTicketAsync));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(LoginWithTicketAsync),
+                    stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        // =========================================================
+        // LOGIN WITH CREDENTIALS
+        // =========================================================
+
+        private async Task<IActionResult> LoginWithCredentialsAsync(
+            LoginRequest request,
+            string returnUrl)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(LoginWithCredentialsAsync));
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.UserName) ||
+                    string.IsNullOrWhiteSpace(request.Password))
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: credenziali mancanti",
+                        ControllerName,
+                        nameof(LoginWithCredentialsAsync));
+
+                    ViewBag.Error =
+                        "Username e password obbligatori.";
+
+                    return View("Login", request);
+                }
+
+                var user = await _context.Users
+                    .Include(u => u.UserRoles)
+                        .ThenInclude(ur => ur.Role)
+                    .FirstOrDefaultAsync(
+                        u => u.UserName == request.UserName);
+
+                if (user == null ||
+                    string.IsNullOrEmpty(user.PasswordHash))
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: credenziali non valide",
+                        ControllerName,
+                        nameof(LoginWithCredentialsAsync));
+
+                    ViewBag.Error = "Credenziali errate.";
+
+                    return View("Login", request);
+                }
+
+                var hasher = new PasswordHasher<User>();
+
+                var result = hasher.VerifyHashedPassword(
+                    user,
+                    user.PasswordHash,
+                    request.Password);
+
+                if (result == PasswordVerificationResult.Failed)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: credenziali non valide",
+                        ControllerName,
+                        nameof(LoginWithCredentialsAsync));
+
+                    ViewBag.Error = "Credenziali errate.";
+
+                    return View("Login", request);
+                }
+
+                var originalRoles = user.UserRoles
+                    .Select(ur => ur.Role)
+                    .ToList();
+
+                if (originalRoles.Count == 0)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: utente senza ruoli",
+                        ControllerName,
+                        nameof(LoginWithCredentialsAsync));
+
+                    ViewBag.Error = "Utente senza ruoli assegnati.";
+
+                    return View("Login", request);
+                }
+
+                var availableRoles = await GetAvailableRolesAsync(
+                    originalRoles);
+
+                if (availableRoles.Count == 0)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: nessun ruolo disponibile",
+                        ControllerName,
+                        nameof(LoginWithCredentialsAsync));
+
+                    ViewBag.Error =
+                        "Non sono disponibili ruoli per questo utente.";
+
+                    return View("Login", request);
+                }
+
+                if (availableRoles.Count > 1 &&
+                    request.RoleId == null)
+                {
+                    return await CreatePendingLoginAsync(
+                        user.Id,
+                        availableRoles,
+                        request);
+                }
+
+                var selectedRole = availableRoles
+                    .FirstOrDefault(r => r.Id == request.RoleId);
+
+                if (selectedRole == null)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: ruolo selezionato non valido",
+                        ControllerName,
+                        nameof(LoginWithCredentialsAsync));
+
+                    ViewBag.Error = "Ruolo selezionato non valido.";
+                    ViewBag.Roles = availableRoles;
+
+                    return View("Login", request);
+                }
+
+                var originalRole = GetOriginalRole(originalRoles);
+
+                if (originalRole == null)
+                {
+                    _logger.LogWarning(
+                        "WARNING | Controller: {Controller} | Method: {Method} | Motivo: ruolo originale non determinabile",
+                        ControllerName,
+                        nameof(LoginWithCredentialsAsync));
+
+                    ViewBag.Error =
+                        "Impossibile determinare il ruolo originale.";
+
+                    return View("Login", request);
+                }
+
+                return await CompleteLoginAsync(
+                    user.Id,
+                    originalRole,
+                    selectedRole.Name,
+                    returnUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(LoginWithCredentialsAsync));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(LoginWithCredentialsAsync),
+                    stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        // =========================================================
+        // GET AVAILABLE ROLES
+        // =========================================================
+
+        private async Task<List<Role>> GetAvailableRolesAsync(
+            List<Role> originalRoles)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(GetAvailableRolesAsync));
+
+            try
+            {
+                var isAdmin = originalRoles.Any(
+                    r => r.Name == "Admin");
+
+                var isEmployee = originalRoles.Any(
+                    r => r.Name == "Employee");
+
+                if (isAdmin)
+                {
+                    return await _context.Roles
+                        .OrderBy(r => r.Name)
+                        .ToListAsync();
+                }
+
+                if (isEmployee)
+                {
+                    return await _context.Roles
+                        .Where(r =>
+                            r.Name == "Employee" ||
+                            r.Name == "Customer" ||
+                            r.Name == "Company")
+                        .OrderBy(r => r.Name)
+                        .ToListAsync();
+                }
+
+                return originalRoles;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(GetAvailableRolesAsync));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(GetAvailableRolesAsync),
+                    stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        // =========================================================
+        // GET ORIGINAL ROLE
+        // =========================================================
+
+        private string GetOriginalRole(List<Role> roles)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(GetOriginalRole));
+
+            try
+            {
+                return roles.FirstOrDefault(
+                           r => r.Name == "Admin")?.Name
+                       ?? roles.FirstOrDefault(
+                           r => r.Name == "Employee")?.Name
+                       ?? roles.FirstOrDefault()?.Name;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(GetOriginalRole));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(GetOriginalRole),
+                    stopwatch.ElapsedMilliseconds);
+            }
+        }
+
+        // =========================================================
+        // CREATE PENDING LOGIN
+        // =========================================================
+
+        private async Task<IActionResult> CreatePendingLoginAsync(
+            string userId,
+            List<Role> availableRoles,
+            LoginRequest request)
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(CreatePendingLoginAsync));
+
+            try
+            {
+                var previousTickets = await _context.PendingLogins
+                    .Where(p => p.UserId == userId)
+                    .ToListAsync();
+
+                _context.PendingLogins.RemoveRange(previousTickets);
+
+                var ticket = Convert.ToHexString(
+                    RandomNumberGenerator.GetBytes(32));
+
+                var pendingLogin = new PendingLogin
+                {
+                    Ticket = ticket,
+                    UserId = userId,
+                    AllowedRoleIds = string.Join(
+                        ",",
+                        availableRoles.Select(r => r.Id)),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(5)
+                };
+
+                _context.PendingLogins.Add(pendingLogin);
+
+                await _context.SaveChangesAsync();
+
+                request.LoginTicket = ticket;
+
                 ViewBag.Roles = availableRoles;
 
                 return View("Login", request);
             }
-
-            var originalRole = GetOriginalRole(originalRoles);
-
-            if (originalRole == null)
+            catch (Exception ex)
             {
-                ViewBag.Error = "Impossibile determinare il ruolo originale.";
-                return View("Login", request);
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(CreatePendingLoginAsync));
+
+                throw;
             }
-
-            return await CompleteLoginAsync(
-                user.Id,
-                originalRole,
-                selectedRole.Name,
-                returnUrl);
-        }
-
-        private async Task<List<Role>> GetAvailableRolesAsync(
-        List<Role> originalRoles)
-        {
-            var isAdmin = originalRoles.Any(r => r.Name == "Admin");
-            var isEmployee = originalRoles.Any(r => r.Name == "Employee");
-
-            if (isAdmin)
+            finally
             {
-                return await _context.Roles
-                    .OrderBy(r => r.Name)
-                    .ToListAsync();
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(CreatePendingLoginAsync),
+                    stopwatch.ElapsedMilliseconds);
             }
-
-            if (isEmployee)
-            {
-                return await _context.Roles
-                    .Where(r => r.Name == "Employee"
-                             || r.Name == "Customer"
-                             || r.Name == "Company")
-                    .OrderBy(r => r.Name)
-                    .ToListAsync();
-            }
-
-            return originalRoles;
         }
 
-        private string GetOriginalRole(List<Role> roles)
-        {
-            return roles.FirstOrDefault(r => r.Name == "Admin")?.Name
-                ?? roles.FirstOrDefault(r => r.Name == "Employee")?.Name
-                ?? roles.FirstOrDefault()?.Name;
-        }
-
-        private async Task<IActionResult> CreatePendingLoginAsync(
-        string userId,
-        List<Role> availableRoles,
-        LoginRequest request)
-        {
-            var previousTickets = await _context.PendingLogins
-                .Where(p => p.UserId == userId)
-                .ToListAsync();
-
-            _context.PendingLogins.RemoveRange(previousTickets);
-
-            var ticket = Convert.ToHexString(
-                System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
-
-            var pendingLogin = new PendingLogin
-            {
-                Ticket = ticket,
-                UserId = userId,
-                AllowedRoleIds = string.Join(
-                    ",",
-                    availableRoles.Select(r => r.Id)),
-                ExpiresAt = DateTime.UtcNow.AddMinutes(5)
-            };
-
-            _context.PendingLogins.Add(pendingLogin);
-            await _context.SaveChangesAsync();
-
-            request.LoginTicket = ticket;
-
-            ViewBag.Roles = availableRoles;
-
-            return View("Login", request);
-        }
+        // =========================================================
+        // COMPLETE LOGIN
+        // =========================================================
 
         private async Task<IActionResult> CompleteLoginAsync(
-        string userId,
-        string originalRole,
-        string selectedRole,
-        string returnUrl)
+            string userId,
+            string originalRole,
+            string selectedRole,
+            string returnUrl)
         {
-            var token = _jwtService.GenerateToken(
-                userId,
-                originalRole,
-                selectedRole);
+            var stopwatch = Stopwatch.StartNew();
 
-            Response.Cookies.Append("jwt", token, new CookieOptions
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(CompleteLoginAsync));
+
+            try
             {
-                HttpOnly = true,
-                Secure = Request.IsHttps,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddHours(1)
-            });
+                var token = _jwtService.GenerateToken(
+                    userId,
+                    originalRole,
+                    selectedRole);
 
-            // Unisce il carrello ospite al carrello dell'utente.
-            await MergeGuestCartAfterLoginAsync(userId);
+                Response.Cookies.Append(
+                    "jwt",
+                    token,
+                    new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = Request.IsHttps,
+                        SameSite = SameSiteMode.Lax,
+                        Expires = DateTimeOffset.UtcNow.AddHours(1)
+                    });
 
-            if (!string.IsNullOrEmpty(returnUrl) &&
-                Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
+                _logger.LogInformation(
+                    "Autenticazione completata | Controller: {Controller} | Method: {Method} | Role: {Role}",
+                    ControllerName,
+                    nameof(CompleteLoginAsync),
+                    selectedRole);
+
+                // Unisce il carrello ospite al carrello dell'utente.
+                await MergeGuestCartAfterLoginAsync(userId);
+
+                if (!string.IsNullOrEmpty(returnUrl) &&
+                    Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
+                return RedirectToAction("Index", "Home");
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(CompleteLoginAsync));
 
-            return RedirectToAction("Index", "Home");
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(CompleteLoginAsync),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
 
+        // =========================================================
+        // LOGOUT
+        // =========================================================
 
         public IActionResult Logout()
         {
-            Response.Cookies.Delete("jwt");
-            return RedirectToAction("Login");
+            var stopwatch = Stopwatch.StartNew();
+
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(Logout));
+
+            try
+            {
+                Response.Cookies.Delete("jwt");
+
+                _logger.LogInformation(
+                    "Logout completato | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(Logout));
+
+                return RedirectToAction("Login");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(Logout));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(Logout),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
+
+        // =========================================================
+        // MERGE GUEST CART
+        // =========================================================
 
         private async Task MergeGuestCartAfterLoginAsync(string userId)
         {
-            // Recupera il token del carrello ospite dal cookie.
-            var guestCartToken = _cartHelper.GetGuestCartToken();
+            var stopwatch = Stopwatch.StartNew();
 
-            // Se non esiste un carrello ospite, non c'è nulla da unire.
-            if (string.IsNullOrWhiteSpace(guestCartToken))
-                return;
+            _logger.LogInformation(
+                "START | Controller: {Controller} | Method: {Method}",
+                ControllerName,
+                nameof(MergeGuestCartAfterLoginAsync));
 
-            // Unisce il carrello ospite a quello dell'utente autenticato.
-            await _shoppingCartService.MergeGuestCartAsync(
-                guestCartToken,
-                userId);
+            try
+            {
+                // Recupera il token del carrello ospite dal cookie.
+                var guestCartToken = _cartHelper.GetGuestCartToken();
 
-            // Cancella il cookie soltanto dopo il merge riuscito.
-            _cartHelper.ClearGuestCartToken();
+                // Se non esiste un carrello ospite, non c'è nulla da unire.
+                if (string.IsNullOrWhiteSpace(guestCartToken))
+                {
+                    _logger.LogInformation(
+                        "Nessun carrello ospite da unire | Controller: {Controller} | Method: {Method}",
+                        ControllerName,
+                        nameof(MergeGuestCartAfterLoginAsync));
+
+                    return;
+                }
+
+                // Unisce il carrello ospite al carrello dell'utente autenticato.
+                await _shoppingCartService.MergeGuestCartAsync(
+                    guestCartToken,
+                    userId);
+
+                // Cancella il cookie soltanto dopo il merge riuscito.
+                _cartHelper.ClearGuestCartToken();
+
+                _logger.LogInformation(
+                    "Carrello ospite unito correttamente | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(MergeGuestCartAfterLoginAsync));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "ERROR | Controller: {Controller} | Method: {Method}",
+                    ControllerName,
+                    nameof(MergeGuestCartAfterLoginAsync));
+
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+
+                _logger.LogInformation(
+                    "END | Controller: {Controller} | Method: {Method} | Duration: {Duration} ms",
+                    ControllerName,
+                    nameof(MergeGuestCartAfterLoginAsync),
+                    stopwatch.ElapsedMilliseconds);
+            }
         }
     }
 }
